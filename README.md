@@ -22,7 +22,6 @@ Both were initially created in Python and are being ported into Java.
 > > Need to create a userdata system before this.
 
 > - !ping
-> > This'll be a tough one, since we'll want a help entry for each command when used as a parameter as well.
 > - !about
 > - !afk
 > - !banword / vulgarity filter / channel whitelist
