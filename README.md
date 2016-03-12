@@ -13,7 +13,7 @@ Both were initially created in Python and are being ported into Java.
 ----------
 > **Commands:**
 
-> - !help <command>
+> - !help < command >
 
 ----------
 > **Roadmap:**
