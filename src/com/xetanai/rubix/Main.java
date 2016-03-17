@@ -1,29 +1,21 @@
 package com.xetanai.rubix;
 
-import javax.security.auth.login.LoginException;
+import com.xetanai.rubix.Commands.*;
 
 public class Main {
 
 	public static void main(String[] args) {
 		Bot rubix = new Bot("isaakrogers1@gmail.com","Xeta1230");
-		rubix.getJDAB().addListener(new MessageListener(rubix, "!"));
 		
 		rubix.registerCommand(new Help());
+		rubix.registerAlias("help", "?");
 		
-		try { /* Try to start Rubix/Maxim, and print any errors */
-			rubix.getJDAB().buildBlocking();
-		}
-		catch (IllegalArgumentException e)
-        {
-            System.out.println("[Main] (ERROR) The config was not populated. Please enter an email and password.");
-        }
-        catch (LoginException e)
-        {
-            System.out.println("[Main] (ERROR) The provided email / password combination was incorrect. Please provide valid details.");
-        }
-        catch (InterruptedException e)
-        {
-            e.printStackTrace();
-        }
+		rubix.registerCommand(new GetAliases());
+		
+		rubix.registerCommand(new About());
+		
+		System.out.println(rubix.getCommandList());
+		
+		rubix.loadSettings();		
 	}
 }
