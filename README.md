@@ -9,20 +9,21 @@ Both were initially created in Python and are being ported into Java.
 > **Prerequisites:**
 
 > - [JDA](https://github.com/DV8FromTheWorld/JDA) and all of its requirements.
+> - [GSON](https://github.com/google/gson)
 
 ----------
 > **Commands:**
 
 > - !help < command >
+> - !about
+> - !aliases < command >
 
 ----------
 > **Roadmap:**
 
 > - !whois - Show the username history of a user
 > > Need to create a userdata system before this.
-
 > - !ping
-> - !about
 > - !afk
 > - !banword / vulgarity filter / channel whitelist
 > - !op/!deop
