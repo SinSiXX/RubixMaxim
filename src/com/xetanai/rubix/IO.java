@@ -1,3 +1,5 @@
+package com.xetanai.rubix;
+
 import java.util.*;
 import java.io.*;
 

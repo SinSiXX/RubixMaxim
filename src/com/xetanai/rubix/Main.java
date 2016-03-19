@@ -13,9 +13,23 @@ public class Main {
 		rubix.registerCommand(new GetAliases());
 		
 		rubix.registerCommand(new About());
+		rubix.registerAlias("about","info");
 		
+		rubix.registerCommand(new Roll());
+		
+		rubix.registerCommand(new Whatgame());
+		
+		rubix.registerCommand(new Say());
+		
+		rubix.registerCommand(new Osu());
+		
+		rubix.registerCommand(new Redact());
+		
+		rubix.registerCommand(new Eval());
+		
+		System.out.println("Registered commands:");
 		System.out.println(rubix.getCommandList());
 		
-		rubix.loadSettings();		
+		rubix.loadSettings().update();
 	}
 }

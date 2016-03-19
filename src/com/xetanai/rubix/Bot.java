@@ -14,6 +14,7 @@ import com.xetanai.rubix.Commands.Command;
 
 import net.dv8tion.jda.JDA;
 import net.dv8tion.jda.JDABuilder;
+import net.dv8tion.jda.entities.Message;
 import net.dv8tion.jda.entities.User;
 
 public class Bot {
@@ -22,11 +23,12 @@ public class Bot {
 	private List<Alias> aliasList = new ArrayList<Alias>();
 	private List<Person> visibleUsers = new ArrayList<Person>();
 	private Settings settings = new Settings();
-	private String version = "2.0.0";
+	private String version = "Development";
+	private Message lastMessage;
 	
 	public Bot(String login, String password) {
 		JDABuilder jdab = new JDABuilder().setEmail(login).setPassword(password);
-		jdab.addListener(new MessageListener(this, "!"));
+		jdab.addListener(new MessageListener(this));
 		
 		try { /* Try to start Rubix/Maxim, and print any errors */
 			jda = jdab.buildBlocking();
@@ -58,6 +60,17 @@ public class Bot {
 	public String getVersion()
 	{
 		return version;
+	}
+	
+	public Bot setLastMessage(Message newVal)
+	{
+		lastMessage = newVal;
+		return this;
+	}
+	
+	public Message getLastMessage()
+	{
+		return lastMessage;
 	}
 	
 	public List<Person> getUsers()
@@ -104,7 +117,7 @@ public class Bot {
 		BufferedWriter out;
 		try
 		{
-			FileWriter filestream = new FileWriter("settings.json",false);
+			FileWriter filestream = new FileWriter("data/settings.json",false);
 			out = new BufferedWriter(filestream);
 			
 			out.write(gson.toJson(settings));
@@ -116,17 +129,31 @@ public class Bot {
 		}
 	}
 	
-	public void loadSettings()
+	public Bot loadSettings()
 	{
 		Gson gson = new Gson();
 		
 		String json;
 		try {
-			byte[] encoded = Files.readAllBytes(Paths.get("settings.json"));
+			byte[] encoded = Files.readAllBytes(Paths.get("data/settings.json"));
 			json = new String(encoded);
 			settings = gson.fromJson(json, Settings.class);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return this;
+	}
+	
+	public Bot setName(String newname)
+	{
+		settings.setName(newname);
+		jda.getAccountManager().setUsername(newname).update();
+		return this;
+	}
+	
+	public Bot update()
+	{
+		jda.getAccountManager().setUsername(settings.getName()).update();
+		return this;
 	}
 }

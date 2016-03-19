@@ -4,6 +4,7 @@ public class Settings {
 	private String name;
 	private boolean deleteCommands;
 	private boolean pmReplies;
+	private String commandPrefix;
 	
 	public Settings() {
 		// TODO Auto-generated constructor stub
@@ -40,5 +41,16 @@ public class Settings {
 	{
 		pmReplies = newVal;
 		return this;
+	}
+	
+	public Settings setPrefix(String newVal)
+	{
+		commandPrefix = newVal;
+		return this;
+	}
+	
+	public String getPrefix()
+	{
+		return commandPrefix;
 	}
 }

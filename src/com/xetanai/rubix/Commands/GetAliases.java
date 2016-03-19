@@ -7,8 +7,8 @@ import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
 public class GetAliases extends Command {
 	private static String keyword = "aliases";
-	private static String helpShort = "!aliases <command> - Shows aliases, if any.";
-	private static String helpLong = "Usage: !aliases <command>\nIf no command is provided, it will list all aliases for all commands. You can alternatively provide a command name and see all aliases for that command.";
+	private static String helpShort = "aliases <command> - Shows aliases, if any.";
+	private static String helpLong = "aliases <command>\nIf no command is provided, it will list all aliases for all commands. You can alternatively provide a command name and see all aliases for that command.";
 	
 	public GetAliases()
 	{
