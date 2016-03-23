@@ -15,15 +15,13 @@ import com.xetanai.rubix.Commands.Command;
 import net.dv8tion.jda.JDA;
 import net.dv8tion.jda.JDABuilder;
 import net.dv8tion.jda.entities.Message;
-import net.dv8tion.jda.entities.User;
 
 public class Bot {
 	private JDA jda;
 	private List<Command> commandList = new ArrayList<Command>();
 	private List<Alias> aliasList = new ArrayList<Alias>();
-	private List<Person> visibleUsers = new ArrayList<Person>();
 	private Settings settings = new Settings();
-	private String version = "Development";
+	private String version = "2.2.3";
 	private Message lastMessage;
 	
 	public Bot(String login, String password) {
@@ -45,11 +43,6 @@ public class Bot {
         {
             e.printStackTrace();
         }
-		
-		for (User user : jda.getUsers())
-		{
-			visibleUsers.add(new Person(user));
-		}
 	}
 	
 	public JDA getJDA()
@@ -71,11 +64,6 @@ public class Bot {
 	public Message getLastMessage()
 	{
 		return lastMessage;
-	}
-	
-	public List<Person> getUsers()
-	{
-		return visibleUsers;
 	}
 	
 	public List<Command> getCommandList()
@@ -144,6 +132,41 @@ public class Bot {
 		return this;
 	}
 	
+	public void saveUser(Person usr)
+	{
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		
+		BufferedWriter out;
+		
+		try
+		{
+			FileWriter filestream = new FileWriter("data/users/"+ usr.getId() +".json",false);
+			out = new BufferedWriter(filestream);
+			
+			out.write(gson.toJson(usr));
+			out.close();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	public Person loadUser(String id)
+	{
+		Gson gson = new Gson();
+
+		String json = null;
+		try {
+			byte[] encoded = Files.readAllBytes(Paths.get("data/users/"+ id +".json"));
+			json = new String(encoded);
+		} catch (IOException e) {
+			/* User is new and has no data */
+			saveUser(new Person(jda.getUserById(id)));
+		}
+		return gson.fromJson(json, Person.class);
+	}
+	
 	public Bot setName(String newname)
 	{
 		settings.setName(newname);
@@ -155,5 +178,12 @@ public class Bot {
 	{
 		jda.getAccountManager().setUsername(settings.getName()).update();
 		return this;
+	}
+	
+	public boolean userIsOp(String id)
+	{
+		Person usr = loadUser(id);
+		
+		return usr.isOp();
 	}
 }

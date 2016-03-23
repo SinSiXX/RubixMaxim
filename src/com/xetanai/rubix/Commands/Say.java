@@ -6,12 +6,13 @@ import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
 public class Say extends Command {
 	private static String keyword = "say";
-	private static String helpShort = "say <phrase> - Repeat what you say.";
-	private static String helpLong = "say <phrase>\nRepeats exactly what you supply as the parameter.";
+	private static String usage = "say <phrase>";
+	private static String helpShort = "Repeat what you say.";
+	private static String helpLong = "Repeats exactly what you supply as the parameter.";
 	
 	public Say()
 	{
-		super(helpShort,helpLong,keyword);
+		super(helpShort,helpLong,keyword,usage);
 	}
 	
 	public void onCalled(Bot bot, MessageReceivedEvent msg)

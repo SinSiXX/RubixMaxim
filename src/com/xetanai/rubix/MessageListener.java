@@ -10,6 +10,8 @@ import com.xetanai.rubix.Commands.Command;
 
 import net.dv8tion.jda.Permission;
 import net.dv8tion.jda.entities.Role;
+import net.dv8tion.jda.entities.TextChannel;
+import net.dv8tion.jda.entities.User;
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
 public class MessageListener extends ListenerAdapter{
@@ -18,10 +20,26 @@ public class MessageListener extends ListenerAdapter{
 	public MessageListener(Bot robot) {
 		bot = robot;
 	}
-
+	
 	@Override
     public void onMessageReceived(MessageReceivedEvent event)
     {
+		if(event.getAuthor().getId().equals(bot.getJDA().getSelfInfo().getId()))
+			return; /* I don't exist. */
+		
+		Person sender = bot.loadUser(event.getAuthor().getId());
+		if(sender == null)
+		{
+			if(event.getMessage().getContent().contains(bot.getSettings().getPrefix()))
+				event.getChannel().sendMessage("Generating a user file for you, try the command again in a second.");
+			return;
+		}
+		if(sender.isAfk() && !event.getMessage().getContent().startsWith(bot.getSettings().getPrefix()))
+		{
+			bot.saveUser(sender.setAfk());
+			event.getChannel().sendMessage("Welcome back, " + event.getAuthor().getAsMention() +"!");
+		}
+		
 		String prefix = bot.getSettings().getPrefix();
 		
 		try {
@@ -34,6 +52,16 @@ public class MessageListener extends ListenerAdapter{
 		} catch (Exception e) {
 			event.getChannel().sendMessage("An error occured.\n```"+ e +"```");
 			e.printStackTrace();
+		}
+		
+		for(User x : event.getMessage().getMentionedUsers())
+		{
+			Person usr = bot.loadUser(x.getId());
+			if(usr.isAfk())
+			{
+				event.getChannel().sendMessage(x.getAsMention() +" is currently afk. Your message will be sent to them by PM.");
+				x.getPrivateChannel().sendMessage(event.getAuthor().getAsMention() +" tried to say something to you while you were marked as AFK. Their message was:\n```"+ event.getMessage().getContent() +"```");
+			}
 		}
 		
         if (event.getMessage().getContent().startsWith(prefix))
@@ -49,9 +77,25 @@ public class MessageListener extends ListenerAdapter{
         {
         	if (event.getMessage().getContent().startsWith(prefix+cmd.getKeyword()))
         	{
-        		System.out.println("[MessageListener] Found the command. Executing.");
         		try {
-					cmd.onCalled(bot,event);
+        			if(cmd.getElevated())
+        			{
+        				if(bot.userIsOp(event.getAuthor().getId()))
+        				{
+        					cmd.onCalled(bot,event);
+        					return;
+        				}
+        				event.getChannel().sendMessage("An error occured.\n```Insufficient permissions.```");
+        			}
+        			else if(cmd.isNsfw())
+        			{
+        				if(isChannelNsfw(event.getTextChannel()))
+        					cmd.onCalled(bot,event);
+        			}
+        			else
+        			{
+        				cmd.onCalled(bot,event);
+        			}
 				} catch (Exception e) {
 					event.getChannel().sendMessage("An error occured.\n```"+ e +"```");
 					e.printStackTrace();
@@ -65,7 +109,19 @@ public class MessageListener extends ListenerAdapter{
         	{
         		System.out.println("[MessageListener] Command is an alias for "+ alias.getCommand().getKeyword() +". Executing that.");
         		try {
-					alias.getCommand().onCalled(bot, event);
+        			if(alias.getCommand().getElevated())
+        			{
+        				if(bot.userIsOp(event.getAuthor().getId()))
+        				{
+        					alias.getCommand().onCalled(bot,event);
+        					return;
+        				}
+        				event.getChannel().sendMessage("An error occured.\n```Insufficient permissions.```");
+        			}
+        			else
+        			{
+        				alias.getCommand().onCalled(bot,event);
+        			}
 				} catch (Exception e) {
 					event.getChannel().sendMessage("An error occured.\n```"+ e +"```");
 					e.printStackTrace();
@@ -77,6 +133,18 @@ public class MessageListener extends ListenerAdapter{
         System.out.println("[MessageListener] Not a registered command. Ignoring.");
     }
 	
+	public boolean isChannelNsfw(TextChannel channel) throws Exception
+	{
+		List<String> chans = Files.readAllLines(Paths.get("data/nsfw.at"));
+		for(String entry : chans)
+			if(entry.split("@")[1].equals(channel.getGuild().getName()) || entry.split("@")[1].equals("*"))
+				if(entry.split("@")[0].equals(channel.getName()) || entry.split("@")[0].equals("*"))
+				{
+					return true;
+				}
+		return false;
+	}
+	
 	public boolean isVulgar(MessageReceivedEvent message) throws Exception
 	{
 		if(message.getAuthor().equals(bot.getJDA().getSelfInfo()) || message.isPrivate())
@@ -84,7 +152,7 @@ public class MessageListener extends ListenerAdapter{
 		
 		List<Role> botroles = message.getGuild().getRolesForUser(bot.getJDA().getSelfInfo());		
 		List<String> bannedwords = Files.readAllLines(Paths.get("data/bannedwords.txt"));
-		List<String> whitelist = Files.readAllLines(Paths.get("data/nsfw.at"));
+		
 		
 		boolean canRemove = false;
 		for(Role x : botroles)
@@ -99,14 +167,7 @@ public class MessageListener extends ListenerAdapter{
 			if(msg.equals(word) || msg.matches(".*\\b"+ word +"\\b.*"))
 			{
 				System.out.println("[Chat Filter] Profanity detected from "+ message.getAuthor().getUsername() +" in "+ message.getTextChannel().getName() +"@"+ message.getGuild().getName() +".");
-				for(String entry : whitelist)
-					if(entry.split("@")[1].equals(message.getGuild().getName()) || entry.split("@")[1].equals("*"))
-						if(entry.split("@")[0].equals(message.getTextChannel()) || entry.split("@")[0].equals("*"))
-						{
-							System.out.println("[Chat Filter] Ignoring profanity in "+ message.getTextChannel().getName() +"@"+ message.getGuild().getName() +" due to whitelist.");
-							return false;
-						}
-				return true;
+				return (!isChannelNsfw(message.getTextChannel()));
 			}
 		return false;
 	}

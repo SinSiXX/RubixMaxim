@@ -9,12 +9,13 @@ import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
 public class About extends Command {
 	private static String keyword = "about";
+	private static String usage = "about";
 	private static String helpShort = "about - Shows various information about the bot.";
 	private static String helpLong = "about\nShows information about the bot and its current activities.";
 	
 	public About()
 	{
-		super(helpShort,helpLong,keyword);
+		super(helpShort,helpLong,keyword,usage);
 	}
 	
 	public void onCalled(Bot bot, MessageReceivedEvent msg)

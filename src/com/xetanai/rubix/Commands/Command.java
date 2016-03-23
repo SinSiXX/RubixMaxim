@@ -1,29 +1,28 @@
 package com.xetanai.rubix.Commands;
 
+import java.io.File;
+
 import com.xetanai.rubix.Bot;
 
+import net.dv8tion.jda.entities.Message;
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
 public class Command {
 	String helpLong;
 	String helpShort;
 	String keyword;
+	String usage;
 	boolean elevated;
+	boolean isnsfw;
 	
-	public Command(String hs, String hl, String key, boolean isOp)
+	public Command(String hs, String hl, String key, String usg)
 	{
 		helpLong = hl;
 		helpShort = hs;
 		keyword = key;
-		elevated = isOp;
-	}
-	
-	public Command(String hs, String hl, String key)
-	{
-		helpLong = hl;
-		helpShort = hs;
-		keyword = key;
+		usage = usg;
 		elevated = false;
+		isnsfw = false;
 	}
 	
 	public String getHelp(boolean isLong)
@@ -38,28 +37,69 @@ public class Command {
 	{
 		return keyword;
 	}
+	
+	public boolean getElevated()
+	{
+		return elevated;
+	}
+	
+	public Command setElevation(boolean newval)
+	{
+		elevated = newval;
+		return this;
+	}
+	
+	public String getUsage()
+	{
+		return usage;
+	}
+	
+	public boolean isNsfw()
+	{
+		return isnsfw;
+	}
+	
+	public Command setNsfw(boolean newval)
+	{
+		isnsfw = newval;
+		return this;
+	}
 
 	public void onCalled(Bot bot, MessageReceivedEvent message) throws Exception {
 		return;
 	}
 	
-	public void sendMessage(Bot bot, MessageReceivedEvent event, String message)
+	public Message sendMessage(Bot bot, MessageReceivedEvent event, String message)
 	{	
 		String[] lines = message.split("\n");
+		
+		Message ret = null;
+		
 		if (bot.getSettings().PMReplies())
 		{
-			bot.setLastMessage(event.getAuthor().getPrivateChannel().sendMessage(message));
-			return;
+			ret = event.getAuthor().getPrivateChannel().sendMessage(message);
+			bot.setLastMessage(ret);
 		}
 		else
 			if(lines.length > 20)
 			{
-				event.getAuthor().getPrivateChannel().sendMessage(message);
+				ret = event.getAuthor().getPrivateChannel().sendMessage(message);
 				event.getChannel().sendMessage("My response is long, so I PM'd it to you, "+ event.getAuthor().getAsMention() +".");
 			}
 			else
 				message = "\u200B"+ message;
-				bot.setLastMessage(event.getChannel().sendMessage(message));
+				ret = event.getChannel().sendMessage(message);
+				bot.setLastMessage(ret);
+		return ret;
+	}
+	
+	public Message sendFile(Bot bot, MessageReceivedEvent event, File file)
+	{
+		Message ret = null;
+		
+		ret = event.getChannel().sendFile(file);
+		
+		return ret;
 	}
 	
 	public void redact(Bot bot)

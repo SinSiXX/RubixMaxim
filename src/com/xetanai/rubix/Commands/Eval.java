@@ -11,12 +11,14 @@ import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
 public class Eval extends Command {
 	private static String keyword = "eval";
-	private static String helpShort = "say <phrase> - Repeat what you say.";
-	private static String helpLong = "say <phrase>\nRepeats exactly what you supply as the parameter.";
+	private static String usage = "eval <code>";
+	private static String helpShort = "Evaluates code within code markers.";
+	private static String helpLong = "In depth API will be made available once this is in a useful state.";
 	
 	public Eval()
 	{
-		super(helpShort,helpLong,keyword);
+		super(helpShort,helpLong,keyword,usage);
+		this.setElevation(true);
 	}
 	
 	public void onCalled(Bot bot, MessageReceivedEvent msg)
@@ -26,13 +28,16 @@ public class Eval extends Command {
 	    
 	    String message = msg.getMessage().getContent();
 	    String code = "";
-	    if(message.contains("```"))
+	    if(message.contains("```javascript\n"))
+	    	code = message.substring(message.indexOf("```javascript\n")+13, message.length()-3);
+	    else if(message.contains("```"))
 	    	code = message.substring(message.indexOf("```")+3, message.length()-3);
 	    else
 	    	code = message.substring(bot.getSettings().getPrefix().length()+4);
 	    
 	    script.put("rubix", bot);
 	    script.put("sutils", new ScriptUtils(msg));
+	    script.put("event", msg);
 	    
 	    try {
 			script.eval(code);

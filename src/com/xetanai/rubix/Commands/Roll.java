@@ -8,11 +8,12 @@ import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
 public class Roll extends Command {
 	private static String keyword = "roll";
-	private static String helpLong = "roll [NdN]\nExample: roll 1d20.\nUp to 5 dice are allowed in a single roll.";
-	private static String helpShort = "roll [NdN] - Rolls dice when given a NdN format.";
+	private static String usage = "roll [NdN]";
+	private static String helpLong = "Example: roll 1d20.\nUp to 5 dice are allowed in a single roll.";
+	private static String helpShort = "Rolls dice when given a NdN format.";
 	
 	public Roll(){
-		super(helpShort,helpLong,keyword);
+		super(helpShort,helpLong,keyword,usage);
 	}
 	
 	public void onCalled(Bot bot, MessageReceivedEvent msg)

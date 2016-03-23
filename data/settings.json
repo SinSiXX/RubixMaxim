@@ -1,6 +1,6 @@
 {
-  "name": "Rubix",
+  "name": "Rubix (DEV)",
   "deleteCommands": false,
   "pmReplies": false,
-  "commandPrefix": "!rubixjda:"
+  "commandPrefix": "!rd:"
 }
