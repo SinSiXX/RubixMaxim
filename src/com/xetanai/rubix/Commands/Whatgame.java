@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.xetanai.rubix.Bot;
+import com.xetanai.rubix.Server;
 
 import net.dv8tion.jda.entities.User;
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
@@ -19,7 +20,7 @@ public class Whatgame extends Command {
 		super(helpShort,helpLong,keyword,usage);
 	}
 	
-	public void onCalled(Bot bot, MessageReceivedEvent msg)
+	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
 	{
 		List<String> games = new ArrayList<String>();
 		List<Integer> count = new ArrayList<Integer>();

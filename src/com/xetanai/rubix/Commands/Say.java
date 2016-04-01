@@ -1,6 +1,7 @@
 package com.xetanai.rubix.Commands;
 
 import com.xetanai.rubix.Bot;
+import com.xetanai.rubix.Server;
 
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
@@ -15,8 +16,8 @@ public class Say extends Command {
 		super(helpShort,helpLong,keyword,usage);
 	}
 	
-	public void onCalled(Bot bot, MessageReceivedEvent msg)
+	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
 	{
-		sendMessage(bot, msg, msg.getMessage().getContent().substring(bot.getSettings().getPrefix().length()+4));
+		sendMessage(bot, msg, msg.getMessage().getContent().substring(guild.getPrefix().length()+4));
 	}
 }

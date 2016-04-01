@@ -1,6 +1,7 @@
 package com.xetanai.rubix.Commands;
 
 import com.xetanai.rubix.Bot;
+import com.xetanai.rubix.Server;
 
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
@@ -16,7 +17,7 @@ public class Redact extends Command {
 		this.setElevation(true);
 	}
 	
-	public void onCalled(Bot bot, MessageReceivedEvent msg)
+	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
 	{
 		redact(bot);
 	}

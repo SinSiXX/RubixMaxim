@@ -5,6 +5,7 @@ import java.util.List;
 import com.xetanai.rubix.Bot;
 import com.xetanai.rubix.Game;
 import com.xetanai.rubix.Person;
+import com.xetanai.rubix.Server;
 
 import net.dv8tion.jda.entities.User;
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
@@ -20,9 +21,8 @@ public class Games extends Command {
 		super(helpShort,helpLong,keyword,usage);
 	}
 	
-	public void onCalled(Bot bot, MessageReceivedEvent msg)
+	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
 	{
-		String[] params = msg.getMessage().getRawContent().split(" ");
 		String post = "";
 		Person target = null;
 		

@@ -6,6 +6,7 @@ import javax.script.ScriptException;
 
 import com.xetanai.rubix.Bot;
 import com.xetanai.rubix.ScriptUtils;
+import com.xetanai.rubix.Server;
 
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
@@ -21,7 +22,7 @@ public class Eval extends Command {
 		this.setElevation(true);
 	}
 	
-	public void onCalled(Bot bot, MessageReceivedEvent msg)
+	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
 	{
 		ScriptEngineManager sem = new ScriptEngineManager();
 	    ScriptEngine script = sem.getEngineByName("JavaScript");
@@ -33,7 +34,7 @@ public class Eval extends Command {
 	    else if(message.contains("```"))
 	    	code = message.substring(message.indexOf("```")+3, message.length()-3);
 	    else
-	    	code = message.substring(bot.getSettings().getPrefix().length()+4);
+	    	code = message.substring(message.indexOf(" ")+4);
 	    
 	    script.put("rubix", bot);
 	    script.put("sutils", new ScriptUtils(msg));

@@ -17,15 +17,16 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.xetanai.rubix.Bot;
+import com.xetanai.rubix.Server;
 import com.xetanai.rubix.XetbooruImage;
 
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
 public class Xetbooru extends Command {
 	private static String keyword = "xtbr";
-	private static String usage = "xtbr <id>";
-	private static String helpShort = "Repeat what you say.";
-	private static String helpLong = "Repeats exactly what you supply as the parameter.";
+	private static String usage = "xtbr [id]";
+	private static String helpShort = "Fetches an image from Xetbooru.";
+	private static String helpLong = "Gets and sends an image from Xetbooru when given an image id.";
 	
 	public Xetbooru()
 	{
@@ -33,9 +34,8 @@ public class Xetbooru extends Command {
 		this.setNsfw(true);
 	}
 	
-	public void onCalled(Bot bot, MessageReceivedEvent msg) throws Exception
+	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild) throws Exception
 	{
-		String[] params = msg.getMessage().getRawContent().split(" ");
 		
 		URL url = new URL("http://shimmie.xetbooru.us/index.php?q=/api/shimmie/get_image/"+ params[1]);
 		URLConnection conn = url.openConnection();

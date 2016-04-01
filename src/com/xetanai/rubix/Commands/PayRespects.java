@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.xetanai.rubix.Bot;
+import com.xetanai.rubix.Server;
 
 import net.dv8tion.jda.entities.Message;
 import net.dv8tion.jda.entities.TextChannel;
@@ -20,7 +21,7 @@ public class PayRespects extends Command {
 		super(helpShort,helpLong,keyword,usage);
 	}
 	
-	public void onCalled(Bot bot, MessageReceivedEvent msg)
+	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
 	{
 		Message last = null;
 		sendMessage(bot, msg, "F");

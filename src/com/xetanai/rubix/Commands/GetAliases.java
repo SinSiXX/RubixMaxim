@@ -2,6 +2,7 @@ package com.xetanai.rubix.Commands;
 
 import com.xetanai.rubix.Alias;
 import com.xetanai.rubix.Bot;
+import com.xetanai.rubix.Server;
 
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
@@ -17,9 +18,8 @@ public class GetAliases extends Command {
 	}
 	
 	@Override
-	public void onCalled(Bot bot, MessageReceivedEvent msg)
+	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
 	{
-		String[] params = msg.getMessage().getContent().split(" ");
 		String post = "";
 		
 		if (params.length == 1)

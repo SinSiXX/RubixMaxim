@@ -3,6 +3,7 @@ package com.xetanai.rubix.Commands;
 import java.util.Random;
 
 import com.xetanai.rubix.Bot;
+import com.xetanai.rubix.Server;
 
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
@@ -16,10 +17,8 @@ public class Roll extends Command {
 		super(helpShort,helpLong,keyword,usage);
 	}
 	
-	public void onCalled(Bot bot, MessageReceivedEvent msg)
-	{
-		String[] params = msg.getMessage().getContent().split(" ");
-		
+	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
+	{		
 		if(params.length==1)
 		{
 			sendMessage(bot, msg, "Try again in NdN format. eg; 1d20.");

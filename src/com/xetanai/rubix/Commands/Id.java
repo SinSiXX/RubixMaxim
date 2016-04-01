@@ -3,6 +3,7 @@ package com.xetanai.rubix.Commands;
 import java.util.List;
 
 import com.xetanai.rubix.Bot;
+import com.xetanai.rubix.Server;
 
 import net.dv8tion.jda.entities.User;
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
@@ -18,35 +19,49 @@ public class Id extends Command {
 		super(helpShort,helpLong,keyword,usage);
 	}
 	
-	public void onCalled(Bot bot, MessageReceivedEvent msg)
+	@Override
+	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
 	{
-		String[] params = msg.getMessage().getRawContent().split(" ");
+		String post = "";
 		
 		if(params.length==1)
 		{
 			sendMessage(bot, msg, msg.getAuthor().getAsMention() +", your ID is "+ msg.getAuthor().getId() +".");
 			return;
 		}
-		
-		String post = "";
-		for(int i = 1; i<params.length; i++)
+		if(msg.getMessage().getMentionedUsers().size()==0)
 		{
-			String user = params[i];
-			List<User> usr = bot.getJDA().getUsersByName(user);
-			if(usr.size()>1)
-				post += "The user "+ user +" brought up multiple results. Try @mentioning for perfect accuracy.\n";
-			else if(usr.size()==0)
+			String uname = "";
+			for(int i = 1; i < params.length; i++)
 			{
-				User mention = bot.getJDA().getUserById(user.substring(2,user.length()-1));
-				if(mention != null)
-					post += mention.getUsername() +"'s ID is "+ mention.getId() +".\n";
-				else
-					post += "I couldn't find the user "+ user +".\n";
+				uname += params[i] + "";
+			}
+			uname=uname.trim();
+			
+			List<User> possibilities = bot.getJDA().getUsersByName(uname);
+			if(possibilities.size() > 1)
+			{
+				sendMessage(bot, msg, "The user "+ uname +" brought up multiple results. Try @mentioning them.");
+				return;
+			}
+			else if(possibilities.size() == 0)
+			{
+				sendMessage(bot, msg, "I couldn't finy anyone with that name. Try @mentioning them.");
+				return;
 			}
 			else
-				post += usr.get(0).getUsername() +"'s ID is "+ usr.get(0).getId() +".\n";
+			{
+				post += possibilities.get(0).getUsername() +"'s ID is "+ possibilities.get(0).getId() +".\n";
+			}
 		}
-		post = post.substring(0,post.length()-1); /* Cut off the last newline. */
+		else
+		{
+			for(User mention : msg.getMessage().getMentionedUsers())
+			{
+				post += mention.getUsername() +"'s ID is "+ mention.getId() +".\n";
+			}
+		}
+		post = post.trim();
 		sendMessage(bot, msg, post);
 	}
 }

@@ -6,6 +6,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 import com.xetanai.rubix.Bot;
 import com.xetanai.rubix.OsuUser;
+import com.xetanai.rubix.Server;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -31,9 +32,8 @@ public class Osu extends Command {
 	}
 	
 	@Override
-	public void onCalled(Bot bot, MessageReceivedEvent msg) throws Exception
+	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild) throws Exception
 	{
-		String[] params = msg.getMessage().getContent().split(" ");
 		List<String> modes = Arrays.asList("Standard","Taiko","Catch The Beat","Mania");
 		int m = -1;
 		

@@ -1,6 +1,7 @@
 package com.xetanai.rubix.Commands;
 
 import com.xetanai.rubix.Bot;
+import com.xetanai.rubix.Server;
 
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
@@ -15,19 +16,18 @@ public class WhatsNew extends Command {
 		super(helpShort,helpLong,keyword,usage);
 	}
 	
-	public void onCalled(Bot bot, MessageReceivedEvent msg)
+	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
 	{
 		String post = "";
 		
 		post += "***Changes in Rubix V"+ bot.getVersion() +"***:```diff\n";
 		post += "---The released version of Rubix will NEVER reply to this command.\n";
-		post += "+ The Osu command looks much better.\n";
-		post += "+ The Help command looks much better.\n";
-		post += "- Fixed the Op command on users with spaces in their name.\n";
-		post += "- Fixed a bug in Aliases where the first would be ommitted if multiple existed.\n";
-		post += "+ The Aliases command looks much better.\n";
-		post += "+ Added a games command which displays your games.\n";
-		post += "+ Added pages in help. Use !rd:help page <#> to get a page.\n";
+		post += "+ Help has been improved greatly.\n";
+		post += "- Fixed the help page count.\n";
+		post += "+ Added DM invites. (Available in Rubix Stable).\n";
+		post += "+ Added per-server configuration.\n";
+		post += "- Fixed unicode causing crashes.\n";
+		post += "- Fixed the ID command when @mentioning.\n";
 		
 		
 		post = post.trim()+"```"; /* Get rid of trailing newline and close the code block */

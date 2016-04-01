@@ -1,12 +1,17 @@
 package com.xetanai.rubix.Commands;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.xetanai.rubix.Bot;
+import com.xetanai.rubix.Person;
+import com.xetanai.rubix.Server;
 
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
 public class Help extends Command {
 	private static String keyword = "help";
-	private static String usage = "help <command>";
+	private static String usage = "help <command or page>";
 	private static String helpShort = "Shows this list or explains a command.";
 	private static String helpLong = "Shows a list of all commands. You can append a command name to get indepth information about that command.";
 	
@@ -15,78 +20,78 @@ public class Help extends Command {
 		super(helpShort,helpLong,keyword,usage);
 	}
 	
-	public void onCalled(Bot bot, MessageReceivedEvent msg)
+	@Override
+	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
 	{
-		String[] params = msg.getMessage().getContent().split(" ");
-		
 		int page = 0;
-		if(params.length == 1)
-			page = 1;
-		else if(params[1].equals("page"))
+		int pageTotal;
+		int longest = 0;
+		String post;
+		List<Command> listed = null;
+		
+		if(params.length==2) // Either a page number or command.
 		{
-			if(params.length==2)
+			if(params[1].matches("^[0-9]+")) // Is a page number.
+				page = Integer.parseInt(params[1]);
+			else // Is a command
 			{
-				sendMessage(bot, msg, "Please supply a page number.");
-				return;
-			}
-			else
-				page = Integer.parseInt(params[2]);
-			
-			if(bot.getCommandList().size()-1 < (page-1)*15)
-			{
-				sendMessage(bot, msg, "That page number doesnt exist.");
+				for(Command cmd : bot.getCommandList())
+					if(cmd.getKeyword().equals(params[1]))
+					{
+						post = "```Usage: "+ cmd.getUsage() + "\n";
+						if(cmd.isElevated())
+							post += "Requires Operator.\n";
+						if(cmd.isNsfw())
+							post += "Requires guild to allow nsfw commands.\n";
+						post += cmd.getHelp(true) +"```";
+						
+						sendMessage(bot, msg, post);
+						return;
+					}
+				sendMessage(bot, msg, "That command wasn't found.");
 				return;
 			}
 		}
-		if (params.length == 1 || params[1].equals("page"))
+		
+		Person user = bot.loadUser(msg.getAuthor().getId());
+		
+		listed = new ArrayList<Command>();
+		for(Command cmd : bot.getCommandList())
+			if(user.can(bot, cmd, guild))
+			{
+				listed.add(cmd);
+				if(cmd.getUsage().length() >  longest)
+					longest = cmd.getUsage().length();
+			}
+		
+		pageTotal = 1 + ((listed.size()-1)/15); // 15 commands per page.
+		
+		post = "Commands available to you (This may be different for others):```glsl\n";
+		
+		if(page == 0)
+			page = 1;
+		if(page>pageTotal)
 		{
-			int longest = 0;
-			for(int i = (page*15)-15; i < (page*15); i++)
-			{
-				if(i < bot.getCommandList().size())
-				{
-					Command cmd = bot.getCommandList().get(i);
-					
-					if((bot.getSettings().getPrefix() + cmd.getUsage()).length() > longest)
-						longest = (bot.getSettings().getPrefix() + cmd.getUsage()).length();
-				}
-			}
-			
-			String post = bot.getSettings().getName() +" help.```glsl\n";
-			for (int i = (page*15)-14; i < page*15; i++)
-			{
-				if(i < bot.getCommandList().size())
-				{
-					Command cmd = bot.getCommandList().get(i);
-					
-					post+=bot.getSettings().getPrefix() + cmd.getUsage();
-					for(int j = 0; j < longest - (bot.getSettings().getPrefix() + cmd.getUsage()).length(); j++)
-						post += " ";
-					post += " # ";
-					if(cmd.getElevated())
-						post += "[OP] ";
-					post += cmd.getHelp(false) + "\n";
-				}
-			}
-			post += "```\nPage "+ page + "/"+ ((bot.getCommandList().size() / 15)) +". Use "+ bot.getSettings().getPrefix() +"help page <page> to get a specific page.\n";
-			post += "Use "+ bot.getSettings().getPrefix() +"help <command> to get indepth information on a command.";
-			sendMessage(bot, msg, post);
+			sendMessage(bot, msg, "That page doesn't exist.");
 			return;
 		}
 		
+		for(int i = (page-1)*15; i < page*15; i++)
+		{
+			if(i>=listed.size()) // End of the list.
+				break;
+			
+			Command cmd = listed.get(i);
+			
+			post += guild.getPrefix() + cmd.getUsage();
+			for(int j = 0; j < longest - cmd.getUsage().length(); j++)
+				post += " ";
+			post += " # "+ cmd.getHelp() +"\n";
+		}
+		post += "```\nPage "+ page +"/"+ pageTotal +" - Use "+ guild.getPrefix() +"help <page> to get another page.\n"
+				+ "Use "+ guild.getPrefix() +"help <command> to get help with a command.";
 		
-		for (Command cmd : bot.getCommandList())
-			if (cmd.getKeyword().equals(params[1]))
-			{
-				String post ="```";
-				if(cmd.getElevated())
-					post += "[OPERATOR COMMAND]\n";
-				post += "Usage: !"+ cmd.getUsage() +" - "+ cmd.getHelp(true) +"```";
-				
-				sendMessage(bot, msg, post);
-				return;
-			}
+		sendMessage(bot, msg, post);
 		return;
 	}
-
 }
