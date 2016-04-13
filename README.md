@@ -8,8 +8,9 @@ Both were initially created in Python and are being ported into Java.
 ----------
 > **Prerequisites:**
 
-> - [JDA](https://github.com/DV8FromTheWorld/JDA) 1.4.0_238 and all of its requirements.
+> - [JDA](https://github.com/DV8FromTheWorld/JDA) 1.4.0_238
 > - [GSON](https://github.com/google/gson)
+> - [JDBC](https://dev.mysql.com/downloads/connector/j/5.0.html)
 
 ----------
 > **Commands:**
