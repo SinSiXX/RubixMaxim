@@ -1,6 +1,6 @@
 RubixMaxim
 ===================
-
+***This is not intended to be instantiated, and I would prefer you not to. Instead, invite Rubix to your server at https://discordapp.com/oauth2/authorize?client_id=168321743302295552&scope=bot***
 
 RubixMaxim is bot a rewrite, port, and merge of 2 previous projects, Rubix and Maxim.
 Both were initially created in Python and are being ported into Java.
