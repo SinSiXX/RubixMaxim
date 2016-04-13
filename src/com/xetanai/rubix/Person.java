@@ -1,19 +1,20 @@
 package com.xetanai.rubix;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.xetanai.rubix.Commands.Command;
 
+import net.dv8tion.jda.Permission;
+import net.dv8tion.jda.entities.Guild;
+import net.dv8tion.jda.entities.Role;
+
 public class Person {
 	private String id;
 	private boolean afk;
-	private List<Game> games;
 	
 	public Person(String i) {
 		id = i;
 		afk = false;
-		games = new ArrayList<Game>();
 	}
 	
 	public String getId()
@@ -27,6 +28,8 @@ public class Person {
 			afk=false;
 		else
 			afk=true;
+		
+		SQLUtils.changeUser(id, "Afk", afk);
 		return this;
 	}
 	
@@ -41,21 +44,15 @@ public class Person {
 		return afk;
 	}
 	
-	public Person addGame(String newgame)
+	public boolean canUse(Command cmd, Server guild)
 	{
-		games.add(new Game(newgame));
-		return this;
-	}
-	
-	public List<Game> getGameList()
-	{
-		return games;
-	}
-	
-	public boolean can(Bot bot, Command cmd, Server guild)
-	{
-		if(bot.getJDA().getGuildById(guild.getId()).getOwnerId().equals(id) || id.equals("155490847494897664"))
-			return true; // Do not question the owner nor Xetanai.
+		if(guild==null)
+			return true; // Show all commands in PM.
+		
+		if(Bot.jda.getGuildById(guild.getId()).getOwnerId().equals(id)
+				|| id.equals("155490847494897664")
+				|| id.equals("153966430558224384"))
+			return true; // Do not question the owner nor the devs.
 		
 		if(cmd.isElevated() && !guild.getOperators().contains(id))
 			return false;
@@ -64,5 +61,17 @@ public class Person {
 			return false;
 		
 		return true;
+	}
+	
+	public boolean can(Permission perm, Guild guild)
+	{
+		boolean can = false;
+		
+		List<Role> roles = guild.getRolesForUser(Bot.jda.getUserById(id));
+		for(Role x : roles)
+			if(x.hasPermission(perm))
+				can = true;
+		
+		return can;
 	}
 }

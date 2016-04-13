@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.xetanai.rubix.Bot;
 import com.xetanai.rubix.Person;
+import com.xetanai.rubix.SQLUtils;
 import com.xetanai.rubix.Server;
 
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
@@ -18,11 +19,16 @@ public class Help extends Command {
 	public Help()
 	{
 		super(helpShort,helpLong,keyword,usage);
+		this.setAllowPM(true);
 	}
 	
 	@Override
-	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
+	public void onCalled(MessageReceivedEvent msg, String[] params, Server guild)
 	{
+		String prefix = "!";
+		if(guild!=null)
+			prefix = guild.getPrefix();
+		
 		int page = 0;
 		int pageTotal;
 		int longest = 0;
@@ -35,7 +41,7 @@ public class Help extends Command {
 				page = Integer.parseInt(params[1]);
 			else // Is a command
 			{
-				for(Command cmd : bot.getCommandList())
+				for(Command cmd : Bot.commandList)
 					if(cmd.getKeyword().equals(params[1]))
 					{
 						post = "```Usage: "+ cmd.getUsage() + "\n";
@@ -45,19 +51,19 @@ public class Help extends Command {
 							post += "Requires guild to allow nsfw commands.\n";
 						post += cmd.getHelp(true) +"```";
 						
-						sendMessage(bot, msg, post);
+						sendMessage(msg, post);
 						return;
 					}
-				sendMessage(bot, msg, "That command wasn't found.");
+				sendMessage(msg, "That command wasn't found.");
 				return;
 			}
 		}
 		
-		Person user = bot.loadUser(msg.getAuthor().getId());
+		Person user = SQLUtils.loadUser(msg.getAuthor().getId());
 		
 		listed = new ArrayList<Command>();
-		for(Command cmd : bot.getCommandList())
-			if(user.can(bot, cmd, guild))
+		for(Command cmd : Bot.commandList)
+			if(user.canUse(cmd, guild))
 			{
 				listed.add(cmd);
 				if(cmd.getUsage().length() >  longest)
@@ -66,13 +72,16 @@ public class Help extends Command {
 		
 		pageTotal = 1 + ((listed.size()-1)/15); // 15 commands per page.
 		
-		post = "Commands available to you (This may be different for others):```glsl\n";
+		if(guild!=null)
+			post = "Commands available to you (This may be different for others):```glsl\n";
+		else
+			post = "Full command list. (Most cannot be used in PM):```glsl\n";
 		
 		if(page == 0)
 			page = 1;
 		if(page>pageTotal)
 		{
-			sendMessage(bot, msg, "That page doesn't exist.");
+			sendMessage(msg, "That page doesn't exist.");
 			return;
 		}
 		
@@ -83,15 +92,15 @@ public class Help extends Command {
 			
 			Command cmd = listed.get(i);
 			
-			post += guild.getPrefix() + cmd.getUsage();
+			post += prefix + cmd.getUsage();
 			for(int j = 0; j < longest - cmd.getUsage().length(); j++)
 				post += " ";
 			post += " # "+ cmd.getHelp() +"\n";
 		}
-		post += "```\nPage "+ page +"/"+ pageTotal +" - Use "+ guild.getPrefix() +"help <page> to get another page.\n"
-				+ "Use "+ guild.getPrefix() +"help <command> to get help with a command.";
+		post += "```\nPage "+ page +"/"+ pageTotal +" - Use "+ prefix +"help <page> to get another page.\n"
+				+ "Use "+ prefix +"help <command> to get help with a command.";
 		
-		sendMessage(bot, msg, post);
+		sendMessage(msg, post);
 		return;
 	}
 }

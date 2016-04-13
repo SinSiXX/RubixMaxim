@@ -17,8 +17,9 @@ public class Redact extends Command {
 		this.setElevation(true);
 	}
 	
-	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
+	@Override
+	public void onCalled(MessageReceivedEvent msg, String[] params, Server guild)
 	{
-		redact(bot);
+		Bot.lastMessage.deleteMessage();
 	}
 }

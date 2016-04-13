@@ -18,14 +18,14 @@ public class GetAliases extends Command {
 	}
 	
 	@Override
-	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
+	public void onCalled(MessageReceivedEvent msg, String[] params, Server guild)
 	{
 		String post = "";
 		
 		if (params.length == 1)
 		{
 			int longest = 0;
-			for (Alias alias : bot.getAliasList())
+			for (Alias alias : Bot.aliasList)
 				if(alias.getKeyword().length() > longest)
 					longest = alias.getKeyword().length();
 			
@@ -36,7 +36,7 @@ public class GetAliases extends Command {
 			post += "# Command\n";
 			post += "###################################\n";
 			
-			for (Alias alias : bot.getAliasList())
+			for (Alias alias : Bot.aliasList)
 			{
 				post+=alias.getKeyword();
 				for(int i=0; i < longest - alias.getKeyword().length(); i++)
@@ -48,7 +48,7 @@ public class GetAliases extends Command {
 			return;
 		}
 		post+="**"+ params[1] +"** is aliased by the following commands:```\n";
-		for (Alias alias : bot.getAliasList())
+		for (Alias alias : Bot.aliasList)
 		{
 			if (alias.getCommand().getKeyword().equals(params[1]))
 			{
@@ -57,6 +57,6 @@ public class GetAliases extends Command {
 		}
 		post=post.trim();
 		post+="```";
-		sendMessage(bot, msg, post);
+		sendMessage(msg, post);
 	}
 }

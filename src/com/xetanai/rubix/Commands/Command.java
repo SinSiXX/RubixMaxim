@@ -1,12 +1,16 @@
 package com.xetanai.rubix.Commands;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.xetanai.rubix.Bot;
 import com.xetanai.rubix.MalformedCommandException;
 import com.xetanai.rubix.Server;
 
+import net.dv8tion.jda.MessageBuilder;
 import net.dv8tion.jda.entities.Message;
+import net.dv8tion.jda.entities.User;
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
 public class Command {
@@ -16,6 +20,7 @@ public class Command {
 	String usage;
 	boolean elevated;
 	boolean isnsfw;
+	boolean allowPM;
 	
 	public Command(String hs, String hl, String key, String usg)
 	{
@@ -25,6 +30,7 @@ public class Command {
 		usage = usg;
 		elevated = false;
 		isnsfw = false;
+		allowPM = false;
 	}
 	
 	public String getHelp(boolean isLong)
@@ -71,12 +77,23 @@ public class Command {
 		isnsfw = newval;
 		return this;
 	}
+	
+	public boolean allowPM()
+	{
+		return allowPM;
+	}
+	
+	public Command setAllowPM(boolean newval)
+	{
+		allowPM = newval;
+		return this;
+	}
 
-	public void onCalled(Bot bot, MessageReceivedEvent message, String[] params, Server guild) throws Exception {
+	public void onCalled(MessageReceivedEvent message, String[] params, Server guild) throws Exception {
 		throw new MalformedCommandException();
 	}
 	
-	public Message sendMessage(Bot bot, MessageReceivedEvent event, String message)
+	public Message sendMessage(MessageReceivedEvent event, String message)
 	{	
 		String[] lines = message.split("\n");
 		
@@ -89,24 +106,46 @@ public class Command {
 		else
 			message = "\u200B"+ message;
 			ret = event.getChannel().sendMessage(message);
-			bot.setLastMessage(ret);
+			Bot.lastMessage = ret;
 		return ret;
 	}
 	
-	public Message sendFile(Bot bot, MessageReceivedEvent event, File file)
+	public void sendFile(MessageReceivedEvent event, File file, String comment)
 	{
-		Message ret = null;
+		MessageBuilder ret = new MessageBuilder();
+		ret.appendString(comment);
 		
-		ret = event.getChannel().sendFile(file,null);
-		
-		bot.setLastMessage(ret);
-		
-		return ret;
+		Bot.lastMessage = event.getChannel().sendFile(file,ret.build());
 	}
 	
-	public void redact(Bot bot)
+	public List<String> getIdsInParams(MessageReceivedEvent msg, String[] params)
 	{
-		bot.getLastMessage().deleteMessage();
+		List<String> targets = new ArrayList<String>();
+		
+		if(params.length==1) // No user provided.
+			targets.add(msg.getAuthor().getId());
+		else if(msg.getMessage().getMentionedUsers().size()!=0) // Users are referenced by mention.
+			for(User x : msg.getMessage().getMentionedUsers())
+				targets.add(x.getId());
+		else // Not mentioned, so only one user.
+		{
+			String username = "";
+			for(int i = 1; i < params.length; i++)
+				username += params[i] + " ";
+			username = username.substring(0,username.length()-1);
+			List<User> possibleUsers = new ArrayList<User>();
+			for(User x : msg.getGuild().getUsers())
+				if(x.getUsername().equals(username))
+					possibleUsers.add(x);
+			
+			if(possibleUsers.size()!=1)
+			{
+				return null;
+			}
+			targets.add(possibleUsers.get(0).getId());
+		}
+		
+		return targets;
 	}
 	
 	public String toString()

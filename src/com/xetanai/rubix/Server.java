@@ -1,45 +1,42 @@
 package com.xetanai.rubix;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Server {
 	private String id;
-	private List<String> operators;
 	private boolean lewd;
-	private boolean vulgar;
+	private boolean doMod;
 	private int warnCap;
-	private List<String> mutedIds;
-	private List<String> bannedWords;
 	private String prefix;
 	private String welcomeMessage;
 	private String goodbyeMessage;
 	private boolean doGreet;
+	private boolean CNFMessage;
+	private boolean allowColor;
 	
 	public Server(String discordid)
 	{
 		id = discordid;
-		operators = new ArrayList<String>();
 		lewd = false;
-		vulgar = false;
+		doMod = false;
 		warnCap = 3;
-		mutedIds = new ArrayList<String>();
-		bannedWords = new ArrayList<String>();
 		prefix = "!";
 		doGreet = true;
 		welcomeMessage = "";
 		goodbyeMessage = "";
+		CNFMessage = false;
+		allowColor = false;
 	}
 	
 	public Server addOperator(String userid)
 	{
-		operators.add(userid);
+		SQLUtils.addOperator(userid, id);
 		return this;
 	}
 	
 	public Server removeOperator(String userid)
 	{
-		operators.remove(userid);
+		SQLUtils.removeOperator(userid, id);
 		return this;
 	}
 	
@@ -82,9 +79,9 @@ public class Server {
 		return this;
 	}
 	
-	public Server setVulgar(boolean newVal)
+	public Server setMod(boolean newVal)
 	{
-		vulgar = newVal;
+		doMod = newVal;
 		return this;
 	}
 
@@ -101,7 +98,7 @@ public class Server {
 	
 	public List<String> getOperators()
 	{
-		return operators;
+		return SQLUtils.getOperators(id);
 	}
 	
 	public boolean isLewd()
@@ -109,9 +106,9 @@ public class Server {
 		return lewd;
 	}
 	
-	public boolean isVulgar()
+	public boolean isModded()
 	{
-		return vulgar;
+		return doMod;
 	}
 	
 	public int getWarnCap()
@@ -119,26 +116,15 @@ public class Server {
 		return warnCap;
 	}
 	
-	public Server addMutedUser(String id)
-	{
-		mutedIds.add(id);
-		return this;
-	}
-	
 	public Server addBannedWord(String word)
 	{
-		bannedWords.add(word);
+		SQLUtils.addBannedWord(id, word);
 		return this;
-	}
-	
-	public List<String> getMutedUsers()
-	{
-		return mutedIds;
 	}
 	
 	public List<String> getBannedWords()
 	{
-		return bannedWords;
+		return SQLUtils.getBannedWords(id);
 	}
 	
 	public String getPrefix()
@@ -149,6 +135,28 @@ public class Server {
 	public Server setPrefix(String newVal)
 	{
 		prefix = newVal;
+		return this;
+	}
+	
+	public boolean doCNFMessage()
+	{
+		return CNFMessage;
+	}
+	
+	public Server setDoCNF(boolean newval)
+	{
+		CNFMessage = newval;
+		return this;
+	}
+	
+	public boolean allowsColor()
+	{
+		return allowColor;
+	}
+	
+	public Server setAllowColor(boolean newval)
+	{
+		allowColor = newval;
 		return this;
 	}
 }

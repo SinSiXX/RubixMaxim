@@ -1,7 +1,7 @@
 package com.xetanai.rubix.Commands;
 
-import com.xetanai.rubix.Bot;
 import com.xetanai.rubix.Person;
+import com.xetanai.rubix.SQLUtils;
 import com.xetanai.rubix.Server;
 
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
@@ -17,15 +17,15 @@ public class Afk extends Command {
 		super(helpShort,helpLong,keyword,usage);
 	}
 	
-	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
+	@Override
+	public void onCalled(MessageReceivedEvent msg, String[] params, Server guild)
 	{
-		Person usr = bot.loadUser(msg.getAuthor().getId());
+		Person usr = SQLUtils.loadUser(msg.getAuthor().getId());
 		if(usr.isAfk())
-			sendMessage(bot, msg, msg.getAuthor().getAsMention() +" is no longer afk.");
+			sendMessage(msg, msg.getAuthor().getAsMention() +" is no longer afk.");
 		else
-			sendMessage(bot, msg, msg.getAuthor().getAsMention() +" is now afk. I'll PM them any messages you @mention them in.");
+			sendMessage(msg, msg.getAuthor().getAsMention() +" is now afk. I'll PM them any messages you @mention them in.");
 		
-		usr.setAfk();
-		bot.saveUser(usr);
+		SQLUtils.changeUser(usr.getId(),"Afk",!usr.isAfk());
 	}
 }

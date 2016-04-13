@@ -9,6 +9,7 @@ import com.xetanai.rubix.Commands.Command;
 import net.dv8tion.jda.Permission;
 import net.dv8tion.jda.entities.Role;
 import net.dv8tion.jda.entities.User;
+import net.dv8tion.jda.events.message.MessageAcknowledgedEvent;
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.events.guild.member.GuildMemberJoinEvent;
@@ -17,17 +18,15 @@ import net.dv8tion.jda.utils.InviteUtil;
 import net.dv8tion.jda.utils.InviteUtil.Invite;
 
 public class MessageListener extends ListenerAdapter{
-	private Bot bot;
 	
-	public MessageListener(Bot robot) {
-		bot = robot;
+	public MessageListener() {
 	}
 	
 	@Override
 	public void onGuildMemberJoin(GuildMemberJoinEvent event)
 	{
-		System.out.println("[MessageListener] A new user has joined the guild "+ event.getGuild().getName() +": "+ event.getUser().getUsername());
-		Server serv = bot.loadServer(event.getGuild().getId());
+		System.out.println("[MessageListener] "+ event.getUser().getUsername() +" joined "+ event.getGuild().getName() +".");
+		Server serv = SQLUtils.loadServer(event.getGuild().getId());
 		
 		if(serv.doGreet())
 		{
@@ -42,8 +41,10 @@ public class MessageListener extends ListenerAdapter{
 	@Override
 	public void onGuildMemberLeave(GuildMemberLeaveEvent event)
 	{
+		if(event.getUser().getId().equals(Bot.jda.getSelfInfo().getId()))
+			return;
 		System.out.println("[MessageListener] "+ event.getUser().getUsername() +" left "+ event.getGuild().getName() +".");
-		Server serv = bot.loadServer(event.getGuild().getId());
+		Server serv = SQLUtils.loadServer(event.getGuild().getId());
 		
 		if(serv.doGreet())
 		{
@@ -59,37 +60,49 @@ public class MessageListener extends ListenerAdapter{
 	public void onGuildJoin(GuildJoinEvent event)
 	{
 		String post = "Hello, everyone, I'm Rubix, your new bot!\n";
-		post += bot.getJDA().getUserById(event.getGuild().getOwnerId()).getAsMention() +", thanks for having me! You've automatically been given operator permissions. Be sure to give it to your admins as well.\n";
-		post += "Type !help to see what I can do! If you ever decide you don't want me anymore, just use !leave.";
+		post += Bot.jda.getUserById(event.getGuild().getOwnerId()).getAsMention() +", thanks for having me! You've automatically been given operator permissions. Be sure to give it to your admins as well.\n";
+		post += "Type !help to see what I can do! If you ever decide you don't want me anymore, just use !leave.\n";
+		post += "__***It is highly recommended you change my prefix if used in conjunction with other bots!***__\nDo this with `!config Prefix <yournewprefixhere>`.";
 		event.getGuild().getPublicChannel().sendMessage(post); // Thank the owner for having him. Rubix has manners.
 	
-		bot.createServerEntry(new Server(event.getGuild().getId()));
+		SQLUtils.createServerEntry(new Server(event.getGuild().getId()));
 	}
 	
 	@Override
 	public void onMessageReceived(MessageReceivedEvent event)
 	{
-		if(event.getAuthor().getId().equals(bot.getJDA().getSelfInfo().getId()))
+		if(event.getAuthor().getId().equals(Bot.jda.getSelfInfo().getId()))
 			return; // Rubix shall ignore himself.
 		if(event.isPrivate())
 		{
-			Invite inv = InviteUtil.resolve(event.getMessage().getContent());
-			if(inv==null)
+			if(isCommand(event,null))
 			{
-				event.getTextChannel().sendMessage("I can't function in PM, sorry! Try adding me to your guild by sending me an invite.");
+				String[] params = event.getMessage().getContent().split(" ");
+				Command target = getCommand(params[0], null);
+				
+				if(target!=null)
+				{
+					if(target.allowPM())
+					{
+						try {
+							target.onCalled(event, params, null);
+							return;
+						} catch(Exception e) {
+							e.printStackTrace();
+							return;
+						}
+					}
+					else
+					{
+						event.getPrivateChannel().sendMessage("That command can't be used in PM.");
+						return;
+					}
+				}
 			}
-			else
-			{
-				InviteUtil.join(inv, bot.getJDA(),joinedGuild ->
-				 {
-				     System.out.println("[InvitationPM] Accepted invite to: "+ joinedGuild.getName() +".");
-				 });
-			}
-			return; // Rubix shall ignore PMs, unless it's an invite
 		}
 		
-		Person sender = bot.loadUser(event.getAuthor().getId());
-		Server guild = bot.loadServer(event.getGuild().getId());
+		Person sender = SQLUtils.loadUser(event.getAuthor().getId());
+		Server guild = SQLUtils.loadServer(event.getGuild().getId());
 		
 		/* Anti-vulgarity */
 		if(isVulgar(event, guild))
@@ -100,6 +113,11 @@ public class MessageListener extends ListenerAdapter{
 			return; // Ignore any commands that they might've been sending.
 		}
 		
+		if(event.getMessage().getMentionedUsers().contains(Bot.jda.getSelfInfo()))
+		{
+			parseMention(event,guild);
+		}
+		
 		if(isCommand(event, guild)) /* Commands */
 		{
 			String[] params = event.getMessage().getContent().split(" ");
@@ -107,10 +125,10 @@ public class MessageListener extends ListenerAdapter{
 			
 			if(target != null)
 			{
-				if(sender.can(bot, target, guild))
+				if(sender.canUse(target, guild))
 				{
 					try {
-						target.onCalled(bot, event, params, guild);
+						target.onCalled(event, params, guild);
 						return;
 					} catch (Exception e) {
 						event.getTextChannel().sendMessage("An error occurred.\n```"+ e.toString() +"```");
@@ -126,7 +144,11 @@ public class MessageListener extends ListenerAdapter{
 			}
 			else
 			{
-				event.getTextChannel().sendMessage("That command doesn't exist. Use "+ guild.getPrefix() +"help for a command list.");
+				System.out.println("Doesn't exist. Ignoring.");
+				if(guild.doCNFMessage())
+				{
+					event.getTextChannel().sendMessage("That command doesn't exist. Use `"+ guild.getPrefix() +"help` for a command list.");
+				}
 				return;
 			}
 		}
@@ -135,12 +157,12 @@ public class MessageListener extends ListenerAdapter{
 			if(sender.isAfk())
 			{
 				event.getTextChannel().sendMessage("Welcome back, "+ event.getAuthor().getAsMention() +". I've automatically taken you off AFK.");
-				bot.saveUser(sender.setAfk(false));
+				SQLUtils.changeUser(sender.getId(),"Afk","0");
 				return;
 			}
 			for(User mention : event.getMessage().getMentionedUsers())
 			{
-				Person mentioned = bot.loadUser(mention.getId());
+				Person mentioned = SQLUtils.loadUser(mention.getId());
 				
 				if(mentioned.isAfk())
 				{
@@ -153,12 +175,16 @@ public class MessageListener extends ListenerAdapter{
 	
 	public Command getCommand(String call, Server guild)
 	{
-		for(Command cmd : bot.getCommandList())
-			if(call.equals(guild.getPrefix() + cmd.getKeyword()))
+		String prefix = "!";
+		if(guild!=null)
+			prefix = guild.getPrefix();
+		
+		for(Command cmd : Bot.commandList)
+			if(call.equals(prefix + cmd.getKeyword()))
 				return cmd;
 		
-		for(Alias cmd : bot.getAliasList())
-			if(call.equals(guild.getPrefix() + cmd.getKeyword()))
+		for(Alias cmd : Bot.aliasList)
+			if(call.equals(prefix + cmd.getKeyword()))
 				return cmd.getCommand();
 		return null;
 	}
@@ -166,14 +192,12 @@ public class MessageListener extends ListenerAdapter{
 	public boolean isCommand(MessageReceivedEvent message, Server guild)
 	{
 		String prefix = "!";
-		if(guild.getPrefix() != null)
-		{
+		if(guild!=null)
 			prefix = guild.getPrefix();
-		}
 		
 		if(message.getMessage().getContent().startsWith(prefix))
 		{
-			System.out.println("[MessageListener] Command received from "+ message.getAuthor().getUsername() +".");
+			System.out.println("[MessageListener] Command received from "+ message.getAuthor().getUsername() +": "+ message.getMessage().getContent() +".");
 			return true;
 		}
 		return false;
@@ -183,21 +207,24 @@ public class MessageListener extends ListenerAdapter{
 	{
 		
 		boolean canRemove = false;
-		List<Role> botroles = message.getGuild().getRolesForUser(bot.getJDA().getSelfInfo());
+		List<Role> botroles = message.getGuild().getRolesForUser(Bot.jda.getSelfInfo());
 		for(Role x : botroles)
 			if(x.hasPermission(Permission.MESSAGE_MANAGE))
 				canRemove = true;
 		if(!canRemove)
 			return false;
 		
-		if(message.getAuthor().equals(bot.getJDA().getSelfInfo()) || message.isPrivate())
+		if(message.getAuthor().equals(Bot.jda.getSelfInfo()) || message.isPrivate())
+			return false;
+		
+		if(Bot.userIsOp(message.getAuthor().getId(), message.getGuild().getId()))
 			return false;
 	
 		String msg = message.getMessage().getRawContent().toLowerCase();
 		
-		if(!guild.isVulgar())
+		if(guild.isModded())
 		{
-			Server globalList = bot.loadServer("-1");
+			Server globalList = SQLUtils.loadServer("-1");
 			
 			for(String word : globalList.getBannedWords())
 				if(msg.equals(word) || msg.matches(".*\\b"+ word +"\\b.*"))
@@ -214,5 +241,22 @@ public class MessageListener extends ListenerAdapter{
 				return true;
 			}
 		return false;
+	}
+	
+	private void parseMention(MessageReceivedEvent event, Server guild)
+	{
+		String message = event.getMessage().getRawContent().toLowerCase().trim();
+		System.out.println("[MessageListener] @mention from "+ event.getAuthor() +": "+ message);
+		
+		if(message.contains("prefix"))
+		{
+			event.getChannel().sendMessage(event.getAuthor().getUsername() +", my prefix for this server is `"+ guild.getPrefix() +"`. Use `"+ guild.getPrefix() +"help` for a command list.");
+			return;
+		}
+		if(message.equals(Bot.jda.getSelfInfo().getAsMention()))
+		{
+			event.getChannel().sendMessage("Yes?");
+			return;
+		}
 	}
 }

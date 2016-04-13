@@ -6,6 +6,8 @@ public class XetbooruImage {
 	private String width;
 	private String hash;
 	private String ext;
+	private String[] tags;
+	private String owner_id;
 	
 	public String getId()
 	{
@@ -30,5 +32,15 @@ public class XetbooruImage {
 	public String getExt()
 	{
 		return ext;
+	}
+	
+	public String[] getTags()
+	{
+		return tags;
+	}
+	
+	public String getOwner()
+	{
+		return owner_id;
 	}
 }

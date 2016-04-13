@@ -20,7 +20,8 @@ public class Whatgame extends Command {
 		super(helpShort,helpLong,keyword,usage);
 	}
 	
-	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
+	@Override
+	public void onCalled(MessageReceivedEvent msg, String[] params, Server guild)
 	{
 		List<String> games = new ArrayList<String>();
 		List<Integer> count = new ArrayList<Integer>();
@@ -28,7 +29,7 @@ public class Whatgame extends Command {
 		
 		for(User usr : msg.getGuild().getUsers()) /* Only get the games for this server. */
 		{
-			if(usr.getId() != bot.getJDA().getSelfInfo().getId())
+			if(usr.getId() != Bot.jda.getSelfInfo().getId())
 			{
 				if(usr.getCurrentGame() == null)
 					none+=1;
@@ -65,7 +66,14 @@ public class Whatgame extends Command {
 		String post="";
 		
 		int longest = 0;
-		for(int i = 0; i < 15; i++)
+		int iMax = 0;
+		
+		if(games.size() > 15)
+			iMax = 15;
+		else
+			iMax = games.size();
+		
+		for(int i = 0; i < iMax; i++)
 		{
 			String game = games.get(i);
 			if(game.length() > longest)
@@ -97,6 +105,6 @@ public class Whatgame extends Command {
 		
 		post += "\n\n"+ none +" not playing anything.```";
 		
-		sendMessage(bot, msg, post);
+		sendMessage(msg, post);
 	}
 }

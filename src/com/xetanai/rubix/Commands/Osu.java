@@ -4,13 +4,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
-import com.xetanai.rubix.Bot;
 import com.xetanai.rubix.OsuUser;
 import com.xetanai.rubix.Server;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.NumberFormat;
@@ -32,7 +33,7 @@ public class Osu extends Command {
 	}
 	
 	@Override
-	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild) throws Exception
+	public void onCalled(MessageReceivedEvent msg, String[] params, Server guild)
 	{
 		List<String> modes = Arrays.asList("Standard","Taiko","Catch The Beat","Mania");
 		int m = -1;
@@ -49,28 +50,50 @@ public class Osu extends Command {
 			}
 			if(m == -1)
 			{
-				sendMessage(bot, msg, "That mode wasn't valid. Try one of the following:\n`Standard, Taiko, Catch The Beat, Mania`");
+				sendMessage(msg, "That mode wasn't valid. Try one of the following:\n`Standard, Taiko, Catch The Beat, Mania`");
 				return;
 			}
 		}
 		if(m == -1)
 			m=0;
 		
-		URL fetch = new URL("https://osu.ppy.sh/api/get_user?k=e2dda97db22bd0c465851f474e25a43cac32c260&u="+ params[1] +"&m="+m);
+		URL fetch;
+		URLConnection con;
+		InputStream is = null;
 		
-		URLConnection con = fetch.openConnection();
-		InputStream is = con.getInputStream();
+		try {
+			fetch = new URL("https://osu.ppy.sh/api/get_user?k=e2dda97db22bd0c465851f474e25a43cac32c260&u="+ params[1] +"&m="+m);
+		
+		
+			con = fetch.openConnection();
+			is = con.getInputStream();
+		} catch (MalformedURLException e) {
+			sendMessage(msg,"That username looks strange. Try using your ID instead.");
+			return;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		
 		BufferedReader in = new BufferedReader(new InputStreamReader(is));
 		Gson gson = new GsonBuilder().setLenient().create();
 		String json = "";
 		String line;
-		while((line = in.readLine()) != null)
-			json += line;
+		try {
+			while((line = in.readLine()) != null)
+				json += line;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		
 		JsonParser parser = new JsonParser();
 		JsonArray jArray = parser.parse(json).getAsJsonArray();
-	    OsuUser usr = gson.fromJson( jArray.get(0) , OsuUser.class);
+		OsuUser usr = null;
+		try {
+			usr = gson.fromJson( jArray.get(0) , OsuUser.class);
+		} catch(IndexOutOfBoundsException e) {
+			sendMessage(msg,"That player doesn't exist.");
+			return;
+		}
 		
 	    String rank = NumberFormat.getNumberInstance(Locale.US).format(Integer.parseInt(usr.getRank()));
 	    String localRank = NumberFormat.getNumberInstance(Locale.US).format(Integer.parseInt(usr.getCountryRank()));
@@ -95,6 +118,6 @@ public class Osu extends Command {
 		post += "http://a.ppy.sh/"+ usr.getId() +"\n";
 		post += "http://osu.ppy.sh/u/"+ usr.getId();
 		
-		sendMessage(bot, msg, post);
+		sendMessage(msg, post);
 	}
 }

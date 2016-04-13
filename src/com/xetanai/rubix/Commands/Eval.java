@@ -19,10 +19,10 @@ public class Eval extends Command {
 	public Eval()
 	{
 		super(helpShort,helpLong,keyword,usage);
-		this.setElevation(true);
 	}
 	
-	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
+	@Override
+	public void onCalled(MessageReceivedEvent msg, String[] params, Server guild)
 	{
 		ScriptEngineManager sem = new ScriptEngineManager();
 	    ScriptEngine script = sem.getEngineByName("JavaScript");
@@ -36,14 +36,14 @@ public class Eval extends Command {
 	    else
 	    	code = message.substring(message.indexOf(" ")+4);
 	    
-	    script.put("rubix", bot);
+	    script.put("jda", Bot.jda);
 	    script.put("sutils", new ScriptUtils(msg));
 	    script.put("event", msg);
 	    
 	    try {
 			script.eval(code);
 		} catch (ScriptException e) {
-			sendMessage(bot, msg, "Error evaluating your script.\n```"+ e.getMessage() +"```");
+			sendMessage(msg, "Error evaluating your script.\n```"+ e.getMessage() +"```");
 			e.printStackTrace();
 		}
 	}

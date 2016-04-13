@@ -2,26 +2,26 @@ package com.xetanai.rubix.Commands;
 
 import java.util.Random;
 
-import com.xetanai.rubix.Bot;
 import com.xetanai.rubix.Server;
 
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
 public class Roll extends Command {
 	private static String keyword = "roll";
-	private static String usage = "roll [NdN]";
-	private static String helpLong = "Example: roll 1d20.\nUp to 5 dice are allowed in a single roll.";
+	private static String usage = "roll <NdN>";
+	private static String helpLong = "Example: roll 1d20.\nUp to 10 dice are allowed in a single roll.";
 	private static String helpShort = "Rolls dice when given a NdN format.";
 	
 	public Roll(){
 		super(helpShort,helpLong,keyword,usage);
 	}
 	
-	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
+	@Override
+	public void onCalled(MessageReceivedEvent msg, String[] params, Server guild)
 	{		
 		if(params.length==1)
 		{
-			sendMessage(bot, msg, "Try again in NdN format. eg; 1d20.");
+			sendMessage(msg, "Try again in NdN format. eg; 1d20.");
 			return;
 		}
 		int dice = Integer.parseInt(params[1].split("d")[0]);
@@ -41,7 +41,7 @@ public class Roll extends Command {
 		}
 		else
 		{
-			sendMessage(bot, msg, "No more than 10 dice per roll, "+ msg.getAuthor().getAsMention());
+			sendMessage(msg, "No more than 10 dice per roll, "+ msg.getAuthor().getAsMention());
 			return;
 		}
 		String post = msg.getAuthor().getAsMention() +" rolled a d"+ sides +" and got **";
@@ -49,6 +49,6 @@ public class Roll extends Command {
 			post+=rolls[i] +", ";
 		post+="**totalling to **"+ total +"**.";
 		
-		sendMessage(bot, msg, post);
+		sendMessage(msg, post);
 	}
 }

@@ -1,6 +1,5 @@
 package com.xetanai.rubix.Commands;
 
-import com.xetanai.rubix.Bot;
 import com.xetanai.rubix.Server;
 
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
@@ -17,9 +16,11 @@ public class Leave extends Command {
 		this.setElevation(true);
 	}
 	
-	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
+	@Override
+	public void onCalled(MessageReceivedEvent msg, String[] params, Server guild)
 	{
-		sendMessage(bot, msg, "Okay, "+ msg.getAuthor().getUsername() +". I'm out! Just DM an invite to have me back.");
+		sendMessage(msg, "Okay, "+ msg.getAuthor().getUsername() +". I'm out! Just DM an invite to have me back.");
+		System.out.println("[Invitation PM] Removed from "+ msg.getGuild().getName() +".");
 		msg.getGuild().getManager().leave();
 	}
 }

@@ -16,9 +16,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.xetanai.rubix.Bot;
 import com.xetanai.rubix.Server;
 import com.xetanai.rubix.XetbooruImage;
+import com.xetanai.rubix.XetbooruUser;
 
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
@@ -34,7 +34,8 @@ public class Xetbooru extends Command {
 		this.setNsfw(true);
 	}
 	
-	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild) throws Exception
+	@Override
+	public void onCalled(MessageReceivedEvent msg, String[] params, Server guild) throws Exception
 	{
 		
 		URL url = new URL("http://shimmie.xetbooru.us/index.php?q=/api/shimmie/get_image/"+ params[1]);
@@ -52,19 +53,43 @@ public class Xetbooru extends Command {
 		JsonObject jObject = parser.parse(json).getAsJsonObject();
 	    XetbooruImage img = gson.fromJson( jObject , XetbooruImage.class);
 	    
+	    /* USER */
+	    
+	    URL url2 = new URL("http://shimmie.xetbooru.us/index.php?q=/api/shimmie/get_user&id="+ img.getOwner());
+		URLConnection conn2 = url2.openConnection();
+		InputStream in2 = conn2.getInputStream();
+		
+		BufferedReader br2 = new BufferedReader(new InputStreamReader(in2));
+		Gson gson2 = new GsonBuilder().setLenient().create();
+		String json2 = br2.readLine();
+		
+		JsonParser parser2 = new JsonParser();
+		JsonObject jObject2 = parser2.parse(json2).getAsJsonObject();
+	    XetbooruUser usr = gson2.fromJson( jObject2 , XetbooruUser.class);
+	    
 	    /* START GETTING IMAGE */
 	    
-	    URL url2 = new URL("http://shimmie.xetbooru.us/images/"+img.getHash().substring(0,2)+"/"+img.getHash());
+	    URL url3 = new URL("http://shimmie.xetbooru.us/images/"+img.getHash().substring(0,2)+"/"+img.getHash());
 	    File outputFile = new File("data/tmpimg."+img.getExt());
-	    URLConnection conn2 = url2.openConnection();
-	    InputStream in2 = conn2.getInputStream();
+	    URLConnection conn3 = url3.openConnection();
+	    InputStream in3 = conn3.getInputStream();
 	    
-	    BufferedImage image = ImageIO.read(in2);
+	    BufferedImage image = ImageIO.read(in3);
 	    
 	    OutputStream os = new FileOutputStream(outputFile);
 	    
 	    ImageIO.write(image, img.getExt(), os);
 	    
-	    sendFile(bot, msg, outputFile);
+	    String post = "**Size:** "+ img.getheight() +"x"+ img.getWidth() +"\n**Tags:** ";
+	    for(int i=0; i<10; i++)
+	    {
+	    	if(i<img.getTags().length)
+	    		post += img.getTags()[i] +", ";
+	    }
+	    post = post.substring(0,post.length()-2);
+	    
+	    post += "\n**Uploader:** "+ usr.getName() +" ("+ usr.getUploadCount() +" other images)";
+	    
+	    sendFile(msg, outputFile, post);
 	}
 }

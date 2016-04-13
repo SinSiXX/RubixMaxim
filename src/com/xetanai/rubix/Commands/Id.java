@@ -20,48 +20,25 @@ public class Id extends Command {
 	}
 	
 	@Override
-	public void onCalled(Bot bot, MessageReceivedEvent msg, String[] params, Server guild)
+	public void onCalled(MessageReceivedEvent msg, String[] params, Server guild)
 	{
 		String post = "";
+		List<String> users = getIdsInParams(msg,params);
 		
-		if(params.length==1)
+		if(users==null)
 		{
-			sendMessage(bot, msg, msg.getAuthor().getAsMention() +", your ID is "+ msg.getAuthor().getId() +".");
+			sendMessage(msg,"I couldn't find anyone with that name. Try @mentioning them.");
 			return;
 		}
-		if(msg.getMessage().getMentionedUsers().size()==0)
+		for(String usrid : users)
 		{
-			String uname = "";
-			for(int i = 1; i < params.length; i++)
-			{
-				uname += params[i] + "";
-			}
-			uname=uname.trim();
+			User target = Bot.jda.getUserById(usrid);
 			
-			List<User> possibilities = bot.getJDA().getUsersByName(uname);
-			if(possibilities.size() > 1)
-			{
-				sendMessage(bot, msg, "The user "+ uname +" brought up multiple results. Try @mentioning them.");
-				return;
-			}
-			else if(possibilities.size() == 0)
-			{
-				sendMessage(bot, msg, "I couldn't finy anyone with that name. Try @mentioning them.");
-				return;
-			}
-			else
-			{
-				post += possibilities.get(0).getUsername() +"'s ID is "+ possibilities.get(0).getId() +".\n";
-			}
+			post += target.getUsername() +"'s ID is "+ usrid +".\n";
 		}
-		else
-		{
-			for(User mention : msg.getMessage().getMentionedUsers())
-			{
-				post += mention.getUsername() +"'s ID is "+ mention.getId() +".\n";
-			}
-		}
+		
 		post = post.trim();
-		sendMessage(bot, msg, post);
+		
+		sendMessage(msg,post);
 	}
 }
