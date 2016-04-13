@@ -8,26 +8,41 @@ Both were initially created in Python and are being ported into Java.
 ----------
 > **Prerequisites:**
 
-> - [JDA](https://github.com/DV8FromTheWorld/JDA) and all of its requirements.
+> - [JDA](https://github.com/DV8FromTheWorld/JDA) 1.4.0_238 and all of its requirements.
 > - [GSON](https://github.com/google/gson)
 
 ----------
 > **Commands:**
 
-> - !help < command >
+> - !help [ command ]
 > - !about
-> - !aliases < command >
+> - !aliases [ command ]
+> - !roll < NdN >
+> - !whatgame
+> - !say < phrase >
+> - !osu < username >
+> - !redact
+> - !op < username or mention >
+> - !afk
+> - !id < username or multiple mentions >
+> - !leave
+> - !config [ setting ] [ value ]
+> - !banword < phrase >
+> - !listops
+> - !whois [ username or mention ]
+> - !vote < username > <+ or ->
+> - !colorme < rgb value >
 
 ----------
-> **Roadmap:**
 
-> - !whois - Show the username history of a user
-> > Need to create a userdata system before this.
-> - !ping
-> - !afk
-> - !banword / vulgarity filter / channel whitelist
-> - !op/!deop
-> - !getid
-> - !roll
-> - **Music over voice chat**
-> - !whatgame
+> **Settings**
+
+> - **DoModerate** - (*Default: **1***) Turns on/off the automoderator feature.
+> - **AllowLewd** - (*Default: **0***) **CURRENTLY HAS NO EFFECT.**
+> - **MaxWarns** - (*Default: **3***) **CURRENTLY HAS NO EFFECT.**
+> - **DoGreet** - (*Default: **0***) Turns on/off Rubix's greeting feature.
+> - **Greeting** - (*Default: **Welcome, {USER}!***) Changes Rubix's greeting message. {USER} will be replaced with their name.
+> - **Farewell** (*Default: **Goodbye, {USER}!***) Same as Greeting, except is said when a user leaves.
+> - **Prefix** (*Default: **!***) Sets the prefix Rubix will respond to. You can use **@Rubix prefix** to get his current prefix, regardless of what it may be.
+> - **CommandNotFoundMsg** (*Default: **0***) Turns on/off Rubix's command not found message.
+> - **AllowColors** (*Default: **0***) Allows/disallows use of colorme.
