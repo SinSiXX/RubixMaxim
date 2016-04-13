@@ -38,12 +38,12 @@ Both were initially created in Python and are being ported into Java.
 
 > **Settings**
 
-> - **DoModerate** - (*Default: **1***) Turns on/off the automoderator feature.
-> - **AllowLewd** - (*Default: **0***) **CURRENTLY HAS NO EFFECT.**
-> - **MaxWarns** - (*Default: **3***) **CURRENTLY HAS NO EFFECT.**
-> - **DoGreet** - (*Default: **0***) Turns on/off Rubix's greeting feature.
-> - **Greeting** - (*Default: **Welcome, {USER}!***) Changes Rubix's greeting message. {USER} will be replaced with their name.
-> - **Farewell** (*Default: **Goodbye, {USER}!***) Same as Greeting, except is said when a user leaves.
-> - **Prefix** (*Default: **!***) Sets the prefix Rubix will respond to. You can use **@Rubix prefix** to get his current prefix, regardless of what it may be.
-> - **CommandNotFoundMsg** (*Default: **0***) Turns on/off Rubix's command not found message.
-> - **AllowColors** (*Default: **0***) Allows/disallows use of colorme.
+> - **DoModerate** - (*Default:* **1**) Turns on/off the automoderator feature.
+> - **AllowLewd** - (*Default:* **0**) **CURRENTLY HAS NO EFFECT.**
+> - **MaxWarns** - (*Default:* **3**) **CURRENTLY HAS NO EFFECT.**
+> - **DoGreet** - (*Default:* **0**) Turns on/off Rubix's greeting feature.
+> - **Greeting** - (*Default:* **Welcome, {USER}!**) Changes Rubix's greeting message. {USER} will be replaced with their name.
+> - **Farewell** (*Default:* **Goodbye, {USER}!**) Same as Greeting, except is said when a user leaves.
+> - **Prefix** (*Default:* **!**) Sets the prefix Rubix will respond to. You can use **@Rubix prefix** to get his current prefix, regardless of what it may be.
+> - **CommandNotFoundMsg** (*Default:* **0**) Turns on/off Rubix's command not found message.
+> - **AllowColors** (*Default:* **0**) Allows/disallows use of colorme.
