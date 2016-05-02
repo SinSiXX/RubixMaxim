@@ -3,20 +3,18 @@ package com.xetanai.rubix.Commands;
 import java.util.List;
 
 import com.xetanai.rubix.Bot;
-import com.xetanai.rubix.SQLUtils;
-import com.xetanai.rubix.Server;
+import com.xetanai.rubix.enitites.Server;
+import com.xetanai.rubix.utils.SQLUtils;
 
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
 public class Listops extends Command {
-	private static String keyword = "listops";
-	private static String usage = "listops";
-	private static String helpShort = "List Rubix operators on this server.";
-	private static String helpLong = "Prints out a list of all operators on this server.";
-	
 	public Listops()
 	{
-		super(helpShort,helpLong,keyword,usage);
+		super("listops");
+		setUsage("listops");
+		setHelp("List the operators on this server.",false);
+		setHelp("Lists all operators on this server.",true);
 	}
 	
 	@Override

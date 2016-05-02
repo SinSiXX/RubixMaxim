@@ -1,21 +1,31 @@
 package com.xetanai.rubix;
 
 import net.dv8tion.jda.hooks.ListenerAdapter;
+import net.dv8tion.jda.utils.PermissionUtil;
 
+import java.time.OffsetDateTime;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
-
+import java.util.Random;
 import com.xetanai.rubix.Commands.Command;
+import com.xetanai.rubix.enitites.Chan;
+import com.xetanai.rubix.enitites.Person;
+import com.xetanai.rubix.enitites.Server;
+import com.xetanai.rubix.utils.MiscUtils;
+import com.xetanai.rubix.utils.SQLUtils;
 
+import net.dv8tion.jda.OnlineStatus;
 import net.dv8tion.jda.Permission;
 import net.dv8tion.jda.entities.Role;
 import net.dv8tion.jda.entities.User;
-import net.dv8tion.jda.events.message.MessageAcknowledgedEvent;
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.events.guild.GuildAvailableEvent;
 import net.dv8tion.jda.events.guild.GuildJoinEvent;
+import net.dv8tion.jda.events.guild.GuildLeaveEvent;
+import net.dv8tion.jda.events.guild.GuildUnavailableEvent;
 import net.dv8tion.jda.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.events.guild.member.GuildMemberLeaveEvent;
-import net.dv8tion.jda.utils.InviteUtil;
-import net.dv8tion.jda.utils.InviteUtil.Invite;
 
 public class MessageListener extends ListenerAdapter{
 	
@@ -27,6 +37,7 @@ public class MessageListener extends ListenerAdapter{
 	{
 		System.out.println("[MessageListener] "+ event.getUser().getUsername() +" joined "+ event.getGuild().getName() +".");
 		Server serv = SQLUtils.loadServer(event.getGuild().getId());
+		int[] fame = SQLUtils.getFame(event.getUser().getId());
 		
 		if(serv.doGreet())
 		{
@@ -36,6 +47,12 @@ public class MessageListener extends ListenerAdapter{
 			
 			event.getGuild().getPublicChannel().sendMessage(welcomeMsg);
 		}
+		
+		double fameD = (double) fame[0]/(fame[0]+fame[1]);
+		if(fame[1]!=0 && fameD<0.7)
+			event.getGuild().getOwner().getPrivateChannel().sendMessage("A user with a poor reputation just joined your guild.\n"+
+					event.getUser().getUsername() +" has a fame of "+ (int) Math.floor(fameD*100) +"%\n"+
+					fame[0] +" have given them positive votes. "+ fame[1] +" have given them negative.");
 	}
 	
 	@Override
@@ -57,6 +74,18 @@ public class MessageListener extends ListenerAdapter{
 	}
 	
 	@Override
+	public void onGuildUnavailable(GuildUnavailableEvent event)
+	{
+		System.out.println("[MessageListener] A guild was just made unavailable: "+ event.getGuild().getName());
+	}
+	
+	@Override
+	public void onGuildAvailable(GuildAvailableEvent event)
+	{
+		System.out.println("[MessageListener] A guild was just made available: "+ event.getGuild().getName());
+	}
+	
+	@Override
 	public void onGuildJoin(GuildJoinEvent event)
 	{
 		String post = "Hello, everyone, I'm Rubix, your new bot!\n";
@@ -65,14 +94,23 @@ public class MessageListener extends ListenerAdapter{
 		post += "__***It is highly recommended you change my prefix if used in conjunction with other bots!***__\nDo this with `!config Prefix <yournewprefixhere>`.";
 		event.getGuild().getPublicChannel().sendMessage(post); // Thank the owner for having him. Rubix has manners.
 	
-		SQLUtils.createServerEntry(new Server(event.getGuild().getId()));
+		Bot.adminAlert("I was added to a new guild:```\n"+ event.getGuild().getName() +"\n"+ event.getGuild().getUsers().size() +" users.");
+		SQLUtils.loadServer(event.getGuild().getId());
+	}
+	
+	@Override
+	public void onGuildLeave(GuildLeaveEvent event)
+	{
+		Bot.adminAlert("I was removed from a guild:```\n"+ event.getGuild().getName());
 	}
 	
 	@Override
 	public void onMessageReceived(MessageReceivedEvent event)
 	{
-		if(event.getAuthor().getId().equals(Bot.jda.getSelfInfo().getId()))
-			return; // Rubix shall ignore himself.
+		MiscUtils.updateLastHeard(event.getAuthor().getId());
+		
+		if(event.getAuthor().isBot())
+			return; // Rubix shall ignore bots.
 		if(event.isPrivate())
 		{
 			if(isCommand(event,null))
@@ -88,7 +126,7 @@ public class MessageListener extends ListenerAdapter{
 							target.onCalled(event, params, null);
 							return;
 						} catch(Exception e) {
-							e.printStackTrace();
+							Bot.adminAlert(Bot.createErrorMessage(e, event));
 							return;
 						}
 					}
@@ -99,10 +137,27 @@ public class MessageListener extends ListenerAdapter{
 					}
 				}
 			}
+			return;
 		}
 		
 		Person sender = SQLUtils.loadUser(event.getAuthor().getId());
 		Server guild = SQLUtils.loadServer(event.getGuild().getId());
+		Chan channel = SQLUtils.loadChannel(event.getTextChannel().getId());
+		
+		/* Channel ignores */
+		if(channel.isIgnored())
+			if(!Bot.userIsOp(sender.getId(), guild.getId()))
+				return;
+		
+		/* Mute */
+		for(Role role : event.getGuild().getRolesForUser(event.getAuthor()))
+		{
+			if(role.getName().equals("Muted"))
+			{
+				event.getMessage().deleteMessage();
+				return;
+			}
+		}
 		
 		/* Anti-vulgarity */
 		if(isVulgar(event, guild))
@@ -125,20 +180,20 @@ public class MessageListener extends ListenerAdapter{
 			
 			if(target != null)
 			{
-				if(sender.canUse(target, guild))
+				if(sender.canUse(target, guild, channel))
 				{
 					try {
 						target.onCalled(event, params, guild);
 						return;
 					} catch (Exception e) {
-						event.getTextChannel().sendMessage("An error occurred.\n```"+ e.toString() +"```");
-						e.printStackTrace();
+						event.getTextChannel().sendMessage("Something went wrong. The developers have been notified automatically.");
+						Bot.adminAlert(Bot.createErrorMessage(e, event));
 						return;
 					}
 				}
 				else
 				{
-					event.getTextChannel().sendMessage("You're not allowed to use that command.");
+					event.getTextChannel().sendMessage("You're not allowed to use that command. Try another channel and check your permissions.");
 					return;
 				}
 			}
@@ -155,7 +210,7 @@ public class MessageListener extends ListenerAdapter{
 		else
 		{
 			if(sender.isAfk())
-			{
+			{				
 				event.getTextChannel().sendMessage("Welcome back, "+ event.getAuthor().getAsMention() +". I've automatically taken you off AFK.");
 				SQLUtils.changeUser(sender.getId(),"Afk","0");
 				return;
@@ -180,11 +235,11 @@ public class MessageListener extends ListenerAdapter{
 			prefix = guild.getPrefix();
 		
 		for(Command cmd : Bot.commandList)
-			if(call.equals(prefix + cmd.getKeyword()))
+			if(call.equalsIgnoreCase(prefix + cmd.getKeyword()))
 				return cmd;
 		
 		for(Alias cmd : Bot.aliasList)
-			if(call.equals(prefix + cmd.getKeyword()))
+			if(call.equalsIgnoreCase(prefix + cmd.getKeyword()))
 				return cmd.getCommand();
 		return null;
 	}
@@ -205,13 +260,7 @@ public class MessageListener extends ListenerAdapter{
 	
 	public boolean isVulgar(MessageReceivedEvent message, Server guild)
 	{
-		
-		boolean canRemove = false;
-		List<Role> botroles = message.getGuild().getRolesForUser(Bot.jda.getSelfInfo());
-		for(Role x : botroles)
-			if(x.hasPermission(Permission.MESSAGE_MANAGE))
-				canRemove = true;
-		if(!canRemove)
+		if(!PermissionUtil.checkPermission(Bot.jda.getSelfInfo(), Permission.MESSAGE_MANAGE, message.getGuild()))
 			return false;
 		
 		if(message.getAuthor().equals(Bot.jda.getSelfInfo()) || message.isPrivate())
@@ -246,6 +295,7 @@ public class MessageListener extends ListenerAdapter{
 	private void parseMention(MessageReceivedEvent event, Server guild)
 	{
 		String message = event.getMessage().getRawContent().toLowerCase().trim();
+		List<String> greetings = Arrays.asList("Hi!","Hello!","Hey!","Heya!","o/");
 		System.out.println("[MessageListener] @mention from "+ event.getAuthor() +": "+ message);
 		
 		if(message.contains("prefix"))
@@ -257,6 +307,22 @@ public class MessageListener extends ListenerAdapter{
 		{
 			event.getChannel().sendMessage("Yes?");
 			return;
+		}
+		if(message.contains("deez"))
+		{
+			event.getChannel().sendMessage("Ha! Goteem!");
+			return;
+		}
+		
+		for(String greet : greetings)
+		{
+			String matchable = greet.toLowerCase().replace("!","");
+			if(message.contains(matchable))
+			{
+				Random rng = new Random();
+				event.getChannel().sendMessage(greetings.get(rng.nextInt(greetings.size())));
+				return;
+			}
 		}
 	}
 }

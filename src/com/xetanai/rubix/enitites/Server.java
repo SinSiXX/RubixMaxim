@@ -1,6 +1,11 @@
-package com.xetanai.rubix;
+package com.xetanai.rubix.enitites;
 
 import java.util.List;
+
+import com.xetanai.rubix.Bot;
+import com.xetanai.rubix.utils.SQLUtils;
+
+import net.dv8tion.jda.entities.TextChannel;
 
 public class Server {
 	private String id;
@@ -13,6 +18,7 @@ public class Server {
 	private boolean doGreet;
 	private boolean CNFMessage;
 	private boolean allowColor;
+	private String defaultChannel;
 	
 	public Server(String discordid)
 	{
@@ -26,6 +32,7 @@ public class Server {
 		goodbyeMessage = "";
 		CNFMessage = false;
 		allowColor = false;
+		defaultChannel = "DEFAULT";
 	}
 	
 	public Server addOperator(String userid)
@@ -158,5 +165,25 @@ public class Server {
 	{
 		allowColor = newval;
 		return this;
+	}
+	
+	public Server setDefaultChannel(String newval)
+	{
+		defaultChannel = newval;
+		return this;
+	}
+	
+	public TextChannel getDefaultChannel()
+	{
+		if(defaultChannel.equals("DEFAULT"))
+			return Bot.jda.getGuildById(id).getPublicChannel();
+		
+		List<TextChannel> chans = Bot.jda.getGuildById(id).getTextChannels();
+		
+		for(TextChannel ch : chans)
+			if(ch.getName().equalsIgnoreCase(defaultChannel))
+				return ch;
+		
+		return Bot.jda.getGuildById(id).getPublicChannel();
 	}
 }

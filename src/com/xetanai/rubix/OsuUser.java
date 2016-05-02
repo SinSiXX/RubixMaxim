@@ -1,5 +1,10 @@
 package com.xetanai.rubix;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class OsuUser {
 	private String error;
 	private String user_id;
@@ -19,6 +24,7 @@ public class OsuUser {
 	private String count_rank_a;
 	private String country;
 	private String pp_country_rank;
+	private String retrieved;
 	
 	public OsuUser()
 	{}
@@ -111,5 +117,23 @@ public class OsuUser {
 	public String getRank()
 	{
 		return pp_rank;
+	}
+	
+	public Date getDateRetrieved()
+	{
+		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		try {
+			return dateFormat.parse(retrieved);
+		} catch (ParseException e) {
+			Bot.adminAlert(Bot.createErrorMessage(e));
+		}
+		return null;
+	}
+	
+	public OsuUser setDateRetrieved(Date newDate)
+	{
+		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		retrieved = dateFormat.format(newDate);
+		return this;
 	}
 }

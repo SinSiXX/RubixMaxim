@@ -1,25 +1,39 @@
 package com.xetanai.rubix.Commands;
 
-import com.xetanai.rubix.Bot;
-import com.xetanai.rubix.Server;
+import java.util.List;
 
+import com.xetanai.rubix.Bot;
+import com.xetanai.rubix.enitites.Server;
+
+import net.dv8tion.jda.MessageHistory;
+import net.dv8tion.jda.entities.Message;
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
 public class Redact extends Command {
-	private static String keyword = "redact";
-	private static String usage = "redact";
-	private static String helpShort = "Removes the last message from this bot.";
-	private static String helpLong = "Makes the bot remove the last message he sent. Messages older than it are impossible to remove with this. Private messages are also ignored, and therefore impossible to remove.";
-	
 	public Redact()
 	{
-		super(helpShort,helpLong,keyword,usage);
+		super("redact");
+		setUsage("redact");
+		setHelp("Removes the last message from Rubix.",false);
+		setHelp("Removes the last message from Rubix on this server.\n"
+				+ "Does not work if his last message was over 100 messages ago.\n"
+				+ "Can be used multiple times.",true);
 		this.setElevation(true);
 	}
 	
 	@Override
 	public void onCalled(MessageReceivedEvent msg, String[] params, Server guild)
 	{
-		Bot.lastMessage.deleteMessage();
+		MessageHistory hist = new MessageHistory(msg.getChannel());
+		List<Message> history = hist.retrieve();
+		
+		for(Message x : history)
+		{
+			if(x.getAuthor().equals(Bot.jda.getSelfInfo()))
+			{
+				x.deleteMessage();
+				return;
+			}
+		}
 	}
 }

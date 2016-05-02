@@ -4,21 +4,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.xetanai.rubix.Bot;
-import com.xetanai.rubix.Person;
-import com.xetanai.rubix.SQLUtils;
-import com.xetanai.rubix.Server;
+import com.xetanai.rubix.enitites.Chan;
+import com.xetanai.rubix.enitites.Person;
+import com.xetanai.rubix.enitites.Server;
+import com.xetanai.rubix.utils.SQLUtils;
 
+import net.dv8tion.jda.Permission;
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.utils.PermissionUtil;
 
 public class Help extends Command {
-	private static String keyword = "help";
-	private static String usage = "help <command or page>";
-	private static String helpShort = "Shows this list or explains a command.";
-	private static String helpLong = "Shows a list of all commands. You can append a command name to get indepth information about that command.";
-	
 	public Help()
 	{
-		super(helpShort,helpLong,keyword,usage);
+		super("help");
+		setUsage("help <command or page>");
+		setHelp("Shows this list, or explains a command in detail.",false);
+		setHelp("Shows a list of all commands.\n"
+				+ "Only 15 will be shown per page, and only commands the person who called it can use are shown.\n"
+				+ "If a command name is given, it will show indepth information on how to use the command, like this.\n"
+				+ "If a page number is given, it will get that page in the list of commands.",true);
 		this.setAllowPM(true);
 	}
 	
@@ -44,26 +48,47 @@ public class Help extends Command {
 				for(Command cmd : Bot.commandList)
 					if(cmd.getKeyword().equals(params[1]))
 					{
-						post = "```Usage: "+ cmd.getUsage() + "\n";
+						post = "Usage: *"+ guild.getPrefix() + cmd.getUsage() + "*\n";
 						if(cmd.isElevated())
-							post += "Requires Operator.\n";
+							post += "**Requires Operator**.\n";
 						if(cmd.isNsfw())
-							post += "Requires guild to allow nsfw commands.\n";
-						post += cmd.getHelp(true) +"```";
+							post += "**Requires AllowLewd setting to be 1**.\n";
+						
+						for(Permission x : cmd.getPermissions())
+						{
+							post += "**Requires permission**: ***"+ x.name().replace("_", " ") +"*** (";
+							if(PermissionUtil.checkPermission(Bot.jda.getSelfInfo(), x, msg.getTextChannel()))
+								post += "\u2713";
+							else
+								post += "\u2717";
+							post += ")\n";
+						}
+						post += "\n";
+						post += cmd.getHelp(true);
 						
 						sendMessage(msg, post);
 						return;
 					}
+				
+				/* Search FAQ */
+				String faq = SQLUtils.getFaq(guild.getId(), params[1]);
+				if(faq!=null)
+				{
+					sendMessage(msg,faq);
+					return;
+				}
+				
 				sendMessage(msg, "That command wasn't found.");
 				return;
 			}
 		}
 		
 		Person user = SQLUtils.loadUser(msg.getAuthor().getId());
+		Chan channel = SQLUtils.loadChannel(msg.getTextChannel().getId());
 		
 		listed = new ArrayList<Command>();
 		for(Command cmd : Bot.commandList)
-			if(user.canUse(cmd, guild))
+			if(user.canUse(cmd, guild, channel))
 			{
 				listed.add(cmd);
 				if(cmd.getUsage().length() >  longest)
@@ -73,9 +98,9 @@ public class Help extends Command {
 		pageTotal = 1 + ((listed.size()-1)/15); // 15 commands per page.
 		
 		if(guild!=null)
-			post = "Commands available to you (This may be different for others):```glsl\n";
+			post = "Commands available to you (This may be different for others):\n";
 		else
-			post = "Full command list. (Most cannot be used in PM):```glsl\n";
+			post = "Full command list. (Most cannot be used in PM):\n";
 		
 		if(page == 0)
 			page = 1;
@@ -92,13 +117,15 @@ public class Help extends Command {
 			
 			Command cmd = listed.get(i);
 			
-			post += prefix + cmd.getUsage();
+			post += "`"+ prefix + cmd.getUsage();
 			for(int j = 0; j < longest - cmd.getUsage().length(); j++)
+			{
 				post += " ";
-			post += " # "+ cmd.getHelp() +"\n";
+			}
+			post += " -` "+ cmd.getHelp() +"\n";
 		}
-		post += "```\nPage "+ page +"/"+ pageTotal +" - Use "+ prefix +"help <page> to get another page.\n"
-				+ "Use "+ prefix +"help <command> to get help with a command.";
+		post += "\nPage ***"+ page +"/"+ pageTotal +"*** - Use **"+ prefix +"help <page>** to get another page.\n"
+				+ "Use **"+ prefix +"help <command>** to get help with a command.";
 		
 		sendMessage(msg, post);
 		return;

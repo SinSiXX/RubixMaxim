@@ -5,20 +5,19 @@ import java.lang.management.RuntimeMXBean;
 import java.text.NumberFormat;
 
 import com.xetanai.rubix.Bot;
-import com.xetanai.rubix.Server;
+import com.xetanai.rubix.enitites.Server;
 
 import net.dv8tion.jda.JDAInfo;
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
 public class About extends Command {
-	private static String keyword = "about";
-	private static String usage = "about";
-	private static String helpShort = "Shows various information about the bot.";
-	private static String helpLong = "about\nShows information about the bot and its current activities.";
-	
 	public About()
 	{
-		super(helpShort,helpLong,keyword,usage);
+		super("about");
+		
+		setUsage("about");
+		setHelp("Shows various information about the bot.",false);
+		setHelp("Shows information about the bot and its current activities.",true);
 	}
 	
 	@Override

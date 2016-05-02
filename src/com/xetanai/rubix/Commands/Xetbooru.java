@@ -16,22 +16,23 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.xetanai.rubix.Server;
 import com.xetanai.rubix.XetbooruImage;
 import com.xetanai.rubix.XetbooruUser;
+import com.xetanai.rubix.enitites.Server;
 
+import net.dv8tion.jda.Permission;
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
 public class Xetbooru extends Command {
-	private static String keyword = "xtbr";
-	private static String usage = "xtbr [id]";
-	private static String helpShort = "Fetches an image from Xetbooru.";
-	private static String helpLong = "Gets and sends an image from Xetbooru when given an image id.";
-	
 	public Xetbooru()
 	{
-		super(helpShort,helpLong,keyword,usage);
+		super("xetbooruid");
+		setUsage("xetbooruid [id]");
+		setHelp("Fetches an image from Xetbooru by ID.",false);
+		setHelp("Gets and sends an image from Xetbooru when given an image ID.",true);
 		this.setNsfw(true);
+		needsPermissionTo(Permission.MESSAGE_ATTACH_FILES);
+		needsPermissionTo(Permission.MESSAGE_EMBED_LINKS);
 	}
 	
 	@Override
@@ -70,7 +71,7 @@ public class Xetbooru extends Command {
 	    /* START GETTING IMAGE */
 	    
 	    URL url3 = new URL("http://shimmie.xetbooru.us/images/"+img.getHash().substring(0,2)+"/"+img.getHash());
-	    File outputFile = new File("data/tmpimg."+img.getExt());
+	    File outputFile = new File("data/tmpimg.jpg");
 	    URLConnection conn3 = url3.openConnection();
 	    InputStream in3 = conn3.getInputStream();
 	    
@@ -78,7 +79,8 @@ public class Xetbooru extends Command {
 	    
 	    OutputStream os = new FileOutputStream(outputFile);
 	    
-	    ImageIO.write(image, img.getExt(), os);
+	    ImageIO.write(image, "jpg", os);
+	    os.close();
 	    
 	    String post = "**Size:** "+ img.getheight() +"x"+ img.getWidth() +"\n**Tags:** ";
 	    for(int i=0; i<10; i++)
@@ -89,6 +91,7 @@ public class Xetbooru extends Command {
 	    post = post.substring(0,post.length()-2);
 	    
 	    post += "\n**Uploader:** "+ usr.getName() +" ("+ usr.getUploadCount() +" other images)";
+	    post += "\nhttp://shimmie.xetbooru.us/index.php?q=/post/view/"+ img.getId();
 	    
 	    sendFile(msg, outputFile, post);
 	}

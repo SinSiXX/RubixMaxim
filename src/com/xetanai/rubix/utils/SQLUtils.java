@@ -1,11 +1,18 @@
-package com.xetanai.rubix;
+package com.xetanai.rubix.utils;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.xetanai.rubix.Bot;
+import com.xetanai.rubix.enitites.Chan;
+import com.xetanai.rubix.enitites.Person;
+import com.xetanai.rubix.enitites.Server;
 
 import java.sql.Connection;
 
@@ -21,7 +28,7 @@ public class SQLUtils {
 			pst.execute();
 			pst.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			Bot.adminAlert(Bot.createErrorMessage(e));
 		}
 	}
 	
@@ -41,7 +48,10 @@ public class SQLUtils {
 		
 		for(Object x : values)
 		{
-			query += x+",";
+			if(x.getClass().equals(String.class))
+				query += "'"+ x +"',";
+			else
+				query += x+",";
 		}
 		
 		query = query.substring(0,query.length()-1);
@@ -53,19 +63,15 @@ public class SQLUtils {
 			pst.execute();
 			pst.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			Bot.adminAlert(Bot.createErrorMessage(e));
 		}
 	}
 	
-	private static void rawUpdate(String table, String where, String key, String val)
+	private static void rawUpdate(String table, String where, String key, String val) throws SQLException
 	{
-		try {
-			PreparedStatement pst = sqlcon.prepareStatement("UPDATE "+ table +" SET "+ key +"='"+ val +"' WHERE "+ where);
-			pst.execute();
-			pst.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		PreparedStatement pst = sqlcon.prepareStatement("UPDATE "+ table +" SET "+ key +"='"+ val +"' WHERE "+ where);
+		pst.execute();
+		pst.close();
 	}
 	
 	public static List<String> getColumnNames(String table)
@@ -87,7 +93,7 @@ public class SQLUtils {
 			
 			pst.close();
 		} catch(SQLException e) {
-			e.printStackTrace();
+			Bot.adminAlert(Bot.createErrorMessage(e));
 		}
 		
 		return names;
@@ -110,9 +116,29 @@ public class SQLUtils {
 			
 			return result;
 		} catch (Exception e) {
-			e.printStackTrace();
+			return null; // Do not notify.
 		}
-		return null;
+	}
+	
+	public static String getSettingVal(Chan chan, String col)
+	{
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		
+		try {
+			pst = sqlcon.prepareStatement("SELECT * FROM channelsettings WHERE ChannelID = '"+ chan.getId() +"'");
+			rs = pst.executeQuery();
+			
+			if(!rs.next())
+				return null;
+			
+			String result = rs.getString(col);
+			pst.close();
+			
+			return result;
+		} catch (Exception e) {
+			return null; // Do not notify.
+		}
 	}
 	
 	public static void createServerEntry(Server srv)
@@ -134,7 +160,7 @@ public class SQLUtils {
 			
 			pst.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			Bot.adminAlert(Bot.createErrorMessage(e));
 		}
 	}
 
@@ -159,16 +185,19 @@ public class SQLUtils {
 					.setGreet(rs.getBoolean("DoGreet"))
 					.setPrefix(rs.getString("Prefix"))
 					.setDoCNF(rs.getBoolean("CommandNotFoundMsg"))
-					.setAllowColor(rs.getBoolean("AllowColors"));
+					.setAllowColor(rs.getBoolean("AllowColors"))
+					.setDefaultChannel(rs.getString("DefaultChannel"));
 			}
 			else
 			{
 				createServerEntry(new Server(id));
+				pst.close();
+				return new Server(id);
 			}
 			
 			pst.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			Bot.adminAlert(Bot.createErrorMessage(e));
 		}
 		
 		return p;
@@ -183,7 +212,7 @@ public class SQLUtils {
 		rs = pst.executeQuery();
 		
 		if(!rs.next())
-			createUserEntry(new Person(id));
+			createServerEntry(new Server(id));
 		rawUpdate("serversettings","DiscordID = "+ id,key,val);
 		
 		pst.close();
@@ -217,7 +246,7 @@ public class SQLUtils {
 			
 			pst.close();
 		} catch(Exception e) {
-			e.printStackTrace();
+			Bot.adminAlert(Bot.createErrorMessage(e));
 		}
 	}
 	
@@ -241,7 +270,7 @@ public class SQLUtils {
 			
 			pst.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			Bot.adminAlert(Bot.createErrorMessage(e));
 		}
 	}
 	
@@ -257,9 +286,13 @@ public class SQLUtils {
 			
 			if(rs.next())
 			{
+				DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 				p = new Person(rs.getString(rs.findColumn("DiscordID")));
 				
 				p.setAfk(rs.getBoolean("Afk"));
+				String rawLH = rs.getString("Lastheard");
+				if(!rawLH.equals("Never"))
+					p.setLastHeard(dateFormat.parse(rawLH));
 			}
 			else
 			{
@@ -269,8 +302,8 @@ public class SQLUtils {
 			}
 			pst.close();
 			
-		} catch (SQLException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			Bot.adminAlert(Bot.createErrorMessage(e));
 		}
 		
 		return p;
@@ -315,7 +348,7 @@ public class SQLUtils {
 	{
 		rawInsert("bannedwords",
 				new String[]{"GuildID","Word"},
-				new Object[]{guildid,"'"+word+"'"});
+				new Object[]{guildid,word});
 	}
 	
 	public static void removeBannedWord(String guildid, String word)
@@ -339,7 +372,7 @@ public class SQLUtils {
 			}
 			pst.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			Bot.adminAlert(Bot.createErrorMessage(e));
 		}
 		
 		return words;
@@ -364,7 +397,7 @@ public class SQLUtils {
 					new Object[]{voterID,targetID,isPositive});
 			pst.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			Bot.adminAlert(Bot.createErrorMessage(e));
 		}
 	}
 	
@@ -387,8 +420,137 @@ public class SQLUtils {
 			}
 			pst.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			Bot.adminAlert(Bot.createErrorMessage(e));
 		}
 		return fame;
+	}
+	
+	public static String getFaq(String id, String keyword)
+	{
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		
+		try {
+			pst = sqlcon.prepareStatement("SELECT * FROM faqentries WHERE DiscordID = '"+ id +"' and Keyword = '"+ keyword +"'");
+			rs = pst.executeQuery();
+			
+			String faqentry = null;
+			if(rs.next())
+			{
+				faqentry = rs.getString("Response");
+			}
+			
+			pst.close();
+			return faqentry;
+		} catch (SQLException e) {
+			Bot.adminAlert(Bot.createErrorMessage(e));
+		}
+		return null;
+	}
+	
+	public static List<String> getAllFaqs(String id)
+	{
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		List<String> faqlist = new ArrayList<String>();
+		
+		try {
+			pst = sqlcon.prepareStatement("SELECT * FROM faqentries WHERE DiscordID = '"+ id +"'");
+			rs = pst.executeQuery();
+			
+			while(rs.next())
+				faqlist.add(rs.getString("Keyword"));
+			
+			pst.close();
+		} catch(SQLException e) {
+			Bot.adminAlert(Bot.createErrorMessage(e));
+		}
+		
+		return faqlist;
+	}
+	
+	public static void removeFaq(String id, String keyword)
+	{
+		rawDelete("faqentries","DiscordID = '"+ id +"' and Keyword = '"+ keyword +"'");
+	}
+	
+	public static void addFaq(String id, String keyword, String response)
+	{
+		rawInsert("faqentries",
+				new String[]{"DiscordID","Keyword","Response"},
+				new Object[]{id,keyword,response});
+	}
+	
+	public static Chan loadChannel(String id)
+	{
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		Chan c = null;
+		
+		try {
+			pst = sqlcon.prepareStatement("SELECT * FROM channelsettings WHERE ChannelID = '"+ id +"'");
+			rs = pst.executeQuery();
+			
+			if(rs.next())
+			{
+				c = new Chan(id)
+						.setIgnored(rs.getBoolean("Ignored"))
+						.setLewd(rs.getBoolean("Lewd"));
+			}
+			else
+			{
+				createChannelEntry(new Chan(id));
+				pst.close();
+				return new Chan(id);
+			}
+			
+			pst.close();
+		} catch (SQLException e) {
+			Bot.adminAlert(Bot.createErrorMessage(e));
+		}
+		
+		return c;
+	}
+	
+	public static void createChannelEntry(Chan chn)
+	{
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		
+		try {
+			pst = sqlcon.prepareStatement("SELECT * FROM channelsettings WHERE ChannelID = '"+ chn.getId() +"'");
+			rs = pst.executeQuery();
+			
+			if(rs.next())
+			{
+				rawDelete("channelsettings","ChannelID = "+ chn.getId());
+			}
+			
+			rawInsert("channelsettings",
+					new String[]{"ChannelId"},
+					new Object[]{chn.getId()});
+			
+			pst.close();
+		} catch (SQLException e) {
+			Bot.adminAlert(Bot.createErrorMessage(e));
+		}
+	}
+	
+	public static void changeChannel(String id, String key, String val) throws SQLException
+	{
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		
+		pst = sqlcon.prepareStatement("SELECT * FROM channelsettings WHERE ChannelID = '"+ id +"'");
+		rs = pst.executeQuery();
+		
+		if(!rs.next())
+		{
+			createChannelEntry(new Chan(id));
+			changeChannel(id,key,val);
+		}
+		rawUpdate("channelsettings","ChannelID = "+ id,key,val);
+		
+		pst.close();
 	}
 }

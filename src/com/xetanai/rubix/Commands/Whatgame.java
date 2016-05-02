@@ -4,20 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.xetanai.rubix.Bot;
-import com.xetanai.rubix.Server;
+import com.xetanai.rubix.enitites.Server;
 
+import net.dv8tion.jda.OnlineStatus;
 import net.dv8tion.jda.entities.User;
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
 public class Whatgame extends Command {
-	private static String keyword = "whatgame";
-	private static String usage = "whatgame";
-	private static String helpShort = "Tells what everyone's playing.";
-	private static String helpLong = "Show what games are being played, and sorts them by most played to least. If more than 20 games are being played, then only the top 5 will be shown.";
-	
 	public Whatgame()
 	{
-		super(helpShort,helpLong,keyword,usage);
+		super("whatgame");
+		setUsage("whatgame");
+		setHelp("Tells what games this server's playing.",false);
+		setHelp("Lists the games users on this server are playing, in order from most players to least.\n"
+				+ "If over 15 games are being played, then only the top 15 will be shown.\n"
+				+ "Bots are ignored.",true);
 	}
 	
 	@Override
@@ -29,7 +30,7 @@ public class Whatgame extends Command {
 		
 		for(User usr : msg.getGuild().getUsers()) /* Only get the games for this server. */
 		{
-			if(usr.getId() != Bot.jda.getSelfInfo().getId())
+			if(usr.getId() != Bot.jda.getSelfInfo().getId() && !usr.isBot() && !usr.getOnlineStatus().equals(OnlineStatus.OFFLINE))
 			{
 				if(usr.getCurrentGame() == null)
 					none+=1;
@@ -95,7 +96,7 @@ public class Whatgame extends Command {
 		}
 		else
 		{
-			post += "Games being played on this server:```";
+			post += "Games being played on this server:```glsl\n";
 			for(int i=0; i<count.size(); i++)
 			{
 				post += games.get(i) +" # "+ count.get(i) +" playing.\n";

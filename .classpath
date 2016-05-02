@@ -2,8 +2,9 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="JDA-withDependencies-1.3.0_188.jar"/>
 	<classpathentry kind="lib" path="E:/Develop/Rubix/2.0.0/gson-2.6.2.jar"/>
 	<classpathentry kind="lib" path="E:/Develop/Rubix/2.0.0/mysql-connector-java-5.0.8-bin.jar"/>
+	<classpathentry kind="lib" path="E:/Develop/Rubix/2.0.0/JDA-withDependencies-2.0.0_242.jar"/>
+	<classpathentry kind="lib" path="E:/Develop/Rubix/2.0.0/httpclient-4.3.3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -3,21 +3,21 @@ package com.xetanai.rubix.Commands;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.xetanai.rubix.SQLUtils;
-import com.xetanai.rubix.Server;
+import com.xetanai.rubix.enitites.Server;
+import com.xetanai.rubix.utils.SQLUtils;
 
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
 public class Config extends Command {
-	private static String keyword = "config";
-	private static String usage = "config <setting> <value>";
-	private static String helpShort = "Change settings.";
-	private static String helpLong = "Change most admin settings using this command.";
-	
 	public Config()
 	{
-		super(helpShort,helpLong,keyword,usage);
-		this.setElevation(true);
+		super("config");
+		setUsage("config [setting] [value]");
+		setHelp("Change how Rubix behaves.",false);
+		setHelp("Change how Rubix behaves on your server.\n"
+				+ "If no setting is provided, Rubix will list the settings available.\n"
+				+ "If no value is provided, Rubix will say the current value.",true);
+		setElevation(true);
 	}
 	
 	@Override
@@ -50,7 +50,7 @@ public class Config extends Command {
 			
 			if(cv==null)
 			{
-				sendMessage(msg,"That isn't a valid setting. ***Settings are case-sensitive***.");
+				sendMessage(msg,"That isn't a valid setting.");
 				return;
 			}
 			
@@ -67,6 +67,13 @@ public class Config extends Command {
 				sendMessage(msg, "That setting cannot be changed with this command.");
 				return;
 			}
+			String cv = SQLUtils.getSettingVal(guild,params[1]);
+			
+			if(cv==null)
+			{
+				sendMessage(msg,"That isn't a valid setting.");
+				return;
+			}
 			
 			try {
 				String newValue = "";
@@ -75,12 +82,22 @@ public class Config extends Command {
 					newValue += params[i] +" ";
 				
 				newValue = newValue.trim();
-
+				
 				SQLUtils.changeServer(guildid, params[1], newValue);
 				
 				sendMessage(msg, "Successfully changed.");
 			} catch(SQLException e) {
-				sendMessage(msg, "Failed to change that setting.\n```"+ e.toString() +"```");
+				if(e.toString().contains("Data too long"))
+				{
+					sendMessage(msg, "Please choose something shorter.");
+					return;
+				}
+				if(e.toString().contains("Incorrect integer value"))
+				{
+					sendMessage(msg, "You must supply a number.");
+					return;
+				}
+				sendMessage(msg, "Failed to change that setting. Unknown reason. \n```"+ e.toString() +"```");
 			}
 		}
 	}

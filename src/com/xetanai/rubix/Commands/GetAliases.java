@@ -2,19 +2,20 @@ package com.xetanai.rubix.Commands;
 
 import com.xetanai.rubix.Alias;
 import com.xetanai.rubix.Bot;
-import com.xetanai.rubix.Server;
+import com.xetanai.rubix.enitites.Server;
 
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
-public class GetAliases extends Command {
-	private static String keyword = "aliases";
-	private static String usage = "aliases <command>";
-	private static String helpShort = "Shows aliases, if any.";
-	private static String helpLong = "If no command is provided, it will list all aliases for all commands. You can alternatively provide a command name and see all aliases for that command.";
-	
+public class GetAliases extends Command {	
 	public GetAliases()
 	{
-		super(helpShort,helpLong,keyword,usage);
+		super("aliases");
+		setUsage("aliases <command>");
+		setHelp("Shows aliases for commands.",false);
+		setHelp("Shows alieses for commands.\n"
+				+ "Aliases can be used interchangably with the command's name.\n"
+				+ "If no command is provided, it will list all aliases.\n"
+				+ "You cannot use an alias to check the aliases of a command.",true);
 	}
 	
 	@Override

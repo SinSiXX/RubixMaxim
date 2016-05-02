@@ -5,20 +5,18 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import com.xetanai.rubix.Bot;
-import com.xetanai.rubix.ScriptUtils;
-import com.xetanai.rubix.Server;
+import com.xetanai.rubix.enitites.Server;
+import com.xetanai.rubix.utils.ScriptUtils.*;
 
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 
 public class Eval extends Command {
-	private static String keyword = "eval";
-	private static String usage = "eval <code>";
-	private static String helpShort = "Evaluates code within code markers.";
-	private static String helpLong = "In depth API will be made available once this is in a useful state.";
-	
 	public Eval()
 	{
-		super(helpShort,helpLong,keyword,usage);
+		super("eval");
+		setUsage("eval <code>");
+		setHelp("",false);
+		setHelp("",true);
 	}
 	
 	@Override
@@ -37,14 +35,13 @@ public class Eval extends Command {
 	    	code = message.substring(message.indexOf(" ")+4);
 	    
 	    script.put("jda", Bot.jda);
-	    script.put("sutils", new ScriptUtils(msg));
 	    script.put("event", msg);
+	    script.put("sjda", new SJDA(msg.getGuild()));
 	    
 	    try {
 			script.eval(code);
 		} catch (ScriptException e) {
 			sendMessage(msg, "Error evaluating your script.\n```"+ e.getMessage() +"```");
-			e.printStackTrace();
 		}
 	}
 }
