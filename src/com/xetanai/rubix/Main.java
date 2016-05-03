@@ -30,15 +30,20 @@ import net.dv8tion.jda.JDABuilder;
 import net.dv8tion.jda.entities.Guild;
 
 public class Main {
-
+	private static String tkn = "";
+	private static String carbontkn = "";
+	private static String dbpass = "";
+	
 	public static void main(String[] args) {
 		File file = new File("Data/token.txt");
 		BufferedReader reader = null;
-		String tkn = "";
+		
 		
 		try {
 		    reader = new BufferedReader(new FileReader(file));
 		    tkn = reader.readLine();
+		    carbontkn = reader.readLine();
+		    dbpass = reader.readLine();
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -84,7 +89,7 @@ public class Main {
 		try { /* Try to start Rubix/Maxim, and print any errors */
 			Class.forName("com.mysql.jdbc.Driver");
 			
-			SQLUtils.sqlcon = DriverManager.getConnection("jdbc:mysql://localhost:3306/rubixv2", "rubix", "Xeta1230");
+			SQLUtils.sqlcon = DriverManager.getConnection("jdbc:mysql://localhost:3306/rubixv2", "rubix", dbpass);
 			Bot.jda = jdab.buildBlocking();
 		}
 		catch (IllegalArgumentException e)
@@ -124,7 +129,7 @@ public class Main {
 					HttpPost httppost = new HttpPost("https://www.carbonitex.net/discord/data/botdata.php");
 					
 					List<NameValuePair> params = new ArrayList<NameValuePair>(2);
-					params.add(new BasicNameValuePair("key","xetanai1793bbf3708ae3"));
+					params.add(new BasicNameValuePair("key",carbontkn));
 					params.add(new BasicNameValuePair("servercount",String.valueOf(Bot.jda.getGuilds().size())));
 					
 					httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));

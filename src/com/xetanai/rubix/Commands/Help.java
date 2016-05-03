@@ -1,5 +1,6 @@
 package com.xetanai.rubix.Commands;
 
+import java.awt.Event;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,11 +85,13 @@ public class Help extends Command {
 		}
 		
 		Person user = SQLUtils.loadUser(msg.getAuthor().getId());
-		Chan channel = SQLUtils.loadChannel(msg.getTextChannel().getId());
+		Chan channel = null;
+		if(!msg.isPrivate());
+			channel = SQLUtils.loadChannel(msg.getTextChannel().getId());
 		
 		listed = new ArrayList<Command>();
 		for(Command cmd : Bot.commandList)
-			if(user.canUse(cmd, guild, channel))
+			if(channel==null || user.canUse(cmd, guild, channel))
 			{
 				listed.add(cmd);
 				if(cmd.getUsage().length() >  longest)

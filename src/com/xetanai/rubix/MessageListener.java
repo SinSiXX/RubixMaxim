@@ -3,9 +3,7 @@ package com.xetanai.rubix;
 import net.dv8tion.jda.hooks.ListenerAdapter;
 import net.dv8tion.jda.utils.PermissionUtil;
 
-import java.time.OffsetDateTime;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import com.xetanai.rubix.Commands.Command;
@@ -15,7 +13,6 @@ import com.xetanai.rubix.enitites.Server;
 import com.xetanai.rubix.utils.MiscUtils;
 import com.xetanai.rubix.utils.SQLUtils;
 
-import net.dv8tion.jda.OnlineStatus;
 import net.dv8tion.jda.Permission;
 import net.dv8tion.jda.entities.Role;
 import net.dv8tion.jda.entities.User;
@@ -94,14 +91,14 @@ public class MessageListener extends ListenerAdapter{
 		post += "__***It is highly recommended you change my prefix if used in conjunction with other bots!***__\nDo this with `!config Prefix <yournewprefixhere>`.";
 		event.getGuild().getPublicChannel().sendMessage(post); // Thank the owner for having him. Rubix has manners.
 	
-		Bot.adminAlert("I was added to a new guild:```\n"+ event.getGuild().getName() +"\n"+ event.getGuild().getUsers().size() +" users.");
+		Bot.adminAlert("I was added to a new guild:```\n"+ event.getGuild().getName() +"\n"+ event.getGuild().getUsers().size() +" users.```");
 		SQLUtils.loadServer(event.getGuild().getId());
 	}
 	
 	@Override
 	public void onGuildLeave(GuildLeaveEvent event)
 	{
-		Bot.adminAlert("I was removed from a guild:```\n"+ event.getGuild().getName());
+		Bot.adminAlert("I was removed from a guild:```\n"+ event.getGuild().getName() +"```");
 	}
 	
 	@Override

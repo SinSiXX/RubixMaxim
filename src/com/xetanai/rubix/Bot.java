@@ -127,6 +127,8 @@ public class Bot {
 	public static void adminAlert(String message)
 	{
 		jda.getUserById(ID_XETANAI).getPrivateChannel().sendMessage(message);
+		if(!isDev())
+			jda.getUserById(ID_CROWDHOPPER).getPrivateChannel().sendMessage(message);
 	}
 	
 	public static void adminAlert(List<String> message)
